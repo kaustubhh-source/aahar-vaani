@@ -1,0 +1,39 @@
+# Python Virtual Environments
+venv/
+.venv/
+env/
+ENV/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.streamlit/secrets.toml
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Audio Data & Scratchpad
+*.wav
+*.mp3
+*.ogg
+*.flac
+*.m4a
+data/temp_audio/*
+!data/temp_audio/.gitkeep
+
+# System & OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE & Editor Settings
+.vscode/
+.idea/
+*.swp
+*.swo
