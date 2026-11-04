@@ -68,7 +68,7 @@ STREAMLIT_SERVER_PORT=8501
 
 1. **Navigate to the project root**:
    ```powershell
-   cd c:\Users\Admin\Documents\air-quality-cep\aahar-vaani
+   cd C:\Users\Admin\Documents\aahar-vaani
    ```
 
 2. **Create a Python Virtual Environment**:
@@ -99,7 +99,7 @@ STREAMLIT_SERVER_PORT=8501
 
 1. **Navigate to the directory**:
    ```cmd
-   cd c:\Users\Admin\Documents\air-quality-cep\aahar-vaani
+   cd C:\Users\Admin\Documents\aahar-vaani
    ```
 
 2. **Create & activate virtual environment**:
