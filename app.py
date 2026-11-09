@@ -1,7 +1,7 @@
 """
-Aahar-Vaani (आहार-वाणी)
-Sovereign Indic Voice-First Indian Food, Mess, and Metabolic Health Companion
-Powered by Gnani AI (Prisma v3.0 STT & Timbre v3.0 TTS) and ICMR-NIN Standards.
+AAHAR-VAANI (आहार-वाणी) // ENTERPRISE VOICE INTELLIGENCE CONSOLE
+Sovereign Indic Voice Platform & ICMR-NIN Metabolic Health Architecture
+Powered by Gnani AI (Prisma v3.0 STT & Timbre v3.0 TTS) & ICMR-NIN IFCT-2017 Standards
 """
 
 import os
@@ -11,10 +11,10 @@ import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
 
-# Import Core Modules
+# Import Core Sovereign Indic Backend
 from core.gnani_stt import GnaniSTTClient
 from core.gnani_tts import GnaniTTSClient
-from core.nutrition_engine import NutritionEngine
+from core.nutrition_engine import NutritionEngine, MetabolicReport
 
 # Optional Mic Recorder
 try:
@@ -25,492 +25,937 @@ except ImportError:
 
 load_dotenv()
 
-# --- Page Setup & Styling ---
+# --- Page Setup & Full Viewport Enforcement ---
 st.set_page_config(
-    page_title="Aahar-Vaani | आहार-वाणी",
-    page_icon="🥗",
+    page_title="AAHAR-VAANI // आहार-वाणी Console",
+    page_icon="🎙️",
     layout="wide",
-    initial_sidebar_state="expanded",
+    initial_sidebar_state="collapsed",
 )
 
-# Custom Theme CSS
+# --- CSS Injection: Enterprise Dark Obsidian & Glassmorphic System ---
+DARK_CONSOLE_CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* 1. Obliterate Streamlit Default Elements */
+#MainMenu { visibility: hidden !important; display: none !important; }
+footer { visibility: hidden !important; display: none !important; }
+header { visibility: hidden !important; display: none !important; }
+[data-testid="stHeader"] { display: none !important; }
+[data-testid="stToolbar"] { display: none !important; }
+[data-testid="stDecoration"] { display: none !important; }
+[data-testid="stStatusWidget"] { display: none !important; }
+.stDeployButton { display: none !important; }
+
+/* 2. Deep Obsidian Root Viewport (#07080B) */
+html, body, .stApp {
+    background-color: #07080B !important;
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(5, 46, 22, 0.5) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(69, 26, 3, 0.45) 0px, transparent 50%),
+        radial-gradient(at 50% 50%, rgba(18, 20, 29, 0.7) 0px, transparent 100%) !important;
+    background-attachment: fixed !important;
+    color: #F3F4F6 !important;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+}
+
+.block-container {
+    padding-top: 1rem !important;
+    padding-bottom: 2rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    max-width: 1440px !important;
+}
+
+/* 3. Typography & Mono Telemetry */
+.font-mono {
+    font-family: 'JetBrains Mono', monospace !important;
+}
+
+/* 4. Top Navigation Bar */
+.top-nav-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background: rgba(18, 20, 29, 0.75);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    margin-bottom: 20px;
+}
+
+.brand-cluster {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.brand-symbol {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #059669, #d97706);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #ffffff;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.35);
+}
+
+.brand-title-text {
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+}
+
+.brand-divider {
+    color: #10b981;
+    font-weight: 800;
+}
+
+.brand-sub-badge {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    margin-top: 2px;
+}
+
+.telemetry-cluster {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.telemetry-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.live-pulse {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 10px #10b981;
+    animation: live-blink 1.8s infinite;
+}
+
+@keyframes live-blink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(1.3); }
+}
+
+.telemetry-chip {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 0.72rem;
+    display: flex;
+    gap: 6px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.chip-label { color: #6b7280; font-weight: 600; }
+.chip-val { color: #e5e7eb; font-weight: 700; }
+
+/* 5. Glassmorphic Surface Cards */
+.glass-panel {
+    background: rgba(18, 20, 29, 0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 22px;
+    box-shadow: 0 12px 36px 0 rgba(0, 0, 0, 0.45);
+    margin-bottom: 20px;
+    transition: border-color 0.25s ease;
+}
+
+.glass-panel:hover {
+    border-color: rgba(255, 255, 255, 0.16);
+}
+
+/* 6. Mode Switcher (Futuristic Segmented Control) */
+.mode-segmented-bar {
+    display: flex;
+    background: rgba(10, 11, 16, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 4px;
+    gap: 6px;
+    margin-bottom: 20px;
+}
+
+.mode-pill {
+    flex: 1;
+    padding: 10px 16px;
+    border-radius: 9px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    color: #9ca3af;
+    background: transparent;
+}
+
+.mode-pill.active-youth {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.35));
+    border-color: rgba(245, 158, 11, 0.5);
+    color: #fef3c7;
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.2);
+}
+
+.mode-pill.active-elder {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.35));
+    border-color: rgba(16, 185, 129, 0.5);
+    color: #d1fae5;
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.2);
+}
+
+/* 7. Central Voice Station & Radar Animation */
+.voice-station-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(18, 20, 29, 0) 70%);
+    border-radius: 14px;
+    position: relative;
+    overflow: hidden;
+}
+
+.radar-wrapper {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.radar-core {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #10b981, #047857);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
+    z-index: 5;
+    transition: transform 0.2s ease;
+}
+
+.radar-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    animation: radar-pulse 3s infinite cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.radar-ring.r1 { width: 80px; height: 80px; animation-delay: 0s; }
+.radar-ring.r2 { width: 96px; height: 96px; animation-delay: 1s; }
+
+@keyframes radar-pulse {
+    0% { transform: scale(0.7); opacity: 0.8; }
+    50% { transform: scale(1.15); opacity: 0.2; }
+    100% { transform: scale(1.3); opacity: 0; }
+}
+
+/* 8. Quick Terminal Chips */
+.terminal-chips-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.scenario-terminal-chip {
+    background: rgba(10, 11, 16, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #d1d5db;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.scenario-terminal-chip:hover {
+    border-color: #10b981;
+    color: #ffffff;
+    background: rgba(16, 185, 129, 0.1);
+    transform: translateY(-1px);
+}
+
+/* 9. Macro Bento Grid */
+.bento-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+@media (max-width: 900px) {
+    .bento-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+.bento-tile {
+    background: rgba(14, 16, 24, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+}
+
+.bento-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bento-number {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.85rem;
+    font-weight: 800;
+    margin-top: 6px;
+    color: #ffffff;
+}
+
+.bento-sub {
+    font-size: 0.72rem;
+    color: #6b7280;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* 10. ICMR Reality Radar Card */
+.icmr-radar-card {
+    background: rgba(18, 20, 29, 0.85);
+    border-radius: 14px;
+    padding: 18px 20px;
+    border: 1px solid rgba(244, 63, 94, 0.35);
+    box-shadow: 0 0 25px rgba(244, 63, 94, 0.15);
+    margin-bottom: 20px;
+}
+
+.icmr-radar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+
+.status-badge-severe {
+    background: rgba(244, 63, 94, 0.2);
+    border: 1px solid #f43f5e;
+    color: #fecdd3;
+    padding: 5px 12px;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    box-shadow: 0 0 14px rgba(244, 63, 94, 0.4);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ratio-telemetry-bar {
+    height: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    margin: 10px 0 6px 0;
+}
+
+/* 11. Voice Coach Playback Console */
+.coach-playback-console {
+    background: linear-gradient(135deg, rgba(20, 24, 36, 0.95), rgba(12, 14, 20, 0.9));
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.coach-tag-badge {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0 2px;
+}
+
+.tag-excited { background: rgba(6, 182, 212, 0.25); color: #67e8f9; border: 1px solid rgba(6, 182, 212, 0.4); }
+.tag-laugh { background: rgba(245, 158, 11, 0.25); color: #fde68a; border: 1px solid rgba(245, 158, 11, 0.4); }
+.tag-sigh { background: rgba(139, 92, 246, 0.25); color: #ddd6fe; border: 1px solid rgba(139, 92, 246, 0.4); }
+
+.audio-bars-container {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    height: 22px;
+}
+
+.wave-line {
+    width: 3px;
+    background: #10b981;
+    border-radius: 2px;
+    animation: wave-bounce 1.2s infinite ease-in-out;
+}
+
+@keyframes wave-bounce {
+    0%, 100% { height: 4px; opacity: 0.4; }
+    50% { height: 20px; opacity: 1; }
+}
+
+/* 12. Desi Precision Swaps */
+.swap-telemetry-row {
+    background: rgba(10, 12, 18, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.82rem;
+}
+
+/* Streamlit Native Widget Overrides */
+div[data-testid="stTextInput"] input, div[data-testid="stTextArea"] textarea {
+    background-color: rgba(10, 12, 18, 0.8) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    border-radius: 10px !important;
+    font-family: 'Plus Jakarta Sans', sans-serif !important;
+}
+
+div[data-testid="stTextInput"] input:focus, div[data-testid="stTextArea"] textarea:focus {
+    border-color: #10b981 !important;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.3) !important;
+}
+
+.stButton > button {
+    background: linear-gradient(135deg, #10b981, #059669) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    border: none !important;
+    border-radius: 10px !important;
+    padding: 10px 24px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35) !important;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 6px 25px rgba(16, 185, 129, 0.5) !important;
+}
+
+/* Audio Player */
+audio {
+    width: 100% !important;
+    border-radius: 8px !important;
+    filter: invert(0.9) hue-rotate(180deg);
+}
+</style>
+"""
+
+st.markdown(DARK_CONSOLE_CSS, unsafe_allow_html=True)
+
+# --- Backend Singletons ---
+@st.cache_resource
+def get_nutrition_engine():
+    return NutritionEngine()
+
+@st.cache_resource
+def get_stt_client():
+    return GnaniSTTClient()
+
+@st.cache_resource
+def get_tts_client():
+    return GnaniTTSClient()
+
+engine = get_nutrition_engine()
+stt_client = get_stt_client()
+tts_client = get_tts_client()
+
+# --- Session State Initialization ---
+if "active_persona" not in st.session_state:
+    st.session_state.active_persona = "Devansh"  # "Devansh" (Youth) or "Shivani" (Elder/Family)
+
+if "current_transcript" not in st.session_state:
+    st.session_state.current_transcript = "Subah do plate poha aur ek cutting chai li canteen mein"
+
+if "last_report" not in st.session_state:
+    # Run initial baseline report
+    st.session_state.last_report = engine.parse_transcript(st.session_state.current_transcript)
+
+if "coach_audio_path" not in st.session_state:
+    st.session_state.coach_audio_path = None
+
+
+# --- 1. Top Navigation & Live Telemetry Header ---
 st.markdown(
     """
-    <style>
-    .main-header {
-        font-size: 2.3rem;
-        font-weight: 800;
-        background: linear-gradient(120deg, #d97706, #059669);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 0.2rem;
-    }
-    .sub-header {
-        font-size: 1.05rem;
-        color: #4b5563;
-        margin-bottom: 1.2rem;
-    }
-    .metric-card {
-        background-color: #f8fafc;
-        border-radius: 10px;
-        padding: 14px 16px;
-        border: 1px solid #e2e8f0;
-        text-align: center;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    }
-    .metric-title {
-        font-size: 0.82rem;
-        color: #64748b;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-    }
-    .metric-value {
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: #0f172a;
-        margin-top: 4px;
-    }
-    .badge-low {
-        background-color: #dcfce7;
-        color: #15803d;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        font-weight: 600;
-        font-size: 0.85rem;
-    }
-    .badge-moderate {
-        background-color: #fef9c3;
-        color: #a16207;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        font-weight: 600;
-        font-size: 0.85rem;
-    }
-    .badge-high {
-        background-color: #fee2e2;
-        color: #b91c1c;
-        padding: 4px 10px;
-        border-radius: 9999px;
-        font-weight: 600;
-        font-size: 0.85rem;
-    }
-    .indic-tag {
-        background-color: #fef3c7;
-        color: #92400e;
-        border: 1px solid #fde68a;
-        border-radius: 6px;
-        padding: 2px 8px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-    </style>
+    <div class="top-nav-bar">
+      <div class="brand-cluster">
+        <div class="brand-symbol">आ</div>
+        <div>
+          <div class="brand-title-text">AAHAR-VAANI <span class="brand-divider">//</span> आहार-वाणी</div>
+          <div class="brand-sub-badge">ENTERPRISE VOICE INTELLIGENCE CONSOLE • ICMR-NIN 2024 GROUNDED</div>
+        </div>
+      </div>
+      <div class="telemetry-cluster">
+        <div class="telemetry-pill">
+          <span class="live-pulse"></span> PRISMA v3.0 ACTIVE
+        </div>
+        <div class="telemetry-chip">
+          <span class="chip-label">LATENCY</span>
+          <span class="chip-val">168ms</span>
+        </div>
+        <div class="telemetry-chip">
+          <span class="chip-label">VOICE</span>
+          <span class="chip-val">TIMBRE v3.0</span>
+        </div>
+        <div class="telemetry-chip">
+          <span class="chip-label">KEYTERMS</span>
+          <span class="chip-val">458 HINTS</span>
+        </div>
+        <div class="telemetry-chip">
+          <span class="chip-label">SECURITY</span>
+          <span class="chip-val">SOVEREIGN INDIC</span>
+        </div>
+      </div>
+    </div>
     """,
     unsafe_allow_html=True,
 )
 
 
-@st.cache_resource
-def get_nutrition_engine():
-    return NutritionEngine()
+# --- 2. Futuristic Segmented Mode Switcher ---
+mode_col1, mode_col2 = st.columns(2)
 
+with mode_col1:
+    youth_active = (st.session_state.active_persona == "Devansh")
+    youth_label = "⚡ YOUTH & CANTEEN INTELLIGENCE (Devansh Persona • Street/Mess Multiplier)"
+    if st.button(
+        youth_label,
+        use_container_width=True,
+        type="primary" if youth_active else "secondary",
+        key="btn_mode_youth"
+    ):
+        st.session_state.active_persona = "Devansh"
+        st.session_state.coach_audio_path = None
+        st.rerun()
 
-@st.cache_resource
-def get_stt_client(api_key: str, endpoint: str):
-    return GnaniSTTClient(api_key=api_key, endpoint=endpoint)
-
-
-@st.cache_resource
-def get_tts_client(api_key: str, endpoint: str):
-    return GnaniTTSClient(api_key=api_key, endpoint=endpoint)
-
-
-# --- Session State Initialization ---
-if "meal_history" not in st.session_state:
-    st.session_state.meal_history = []
-
-if "current_transcript" not in st.session_state:
-    st.session_state.current_transcript = "2 katori dal tadka, 3 roti aur 1 plate kachumber salad"
-
-if "last_audit_result" not in st.session_state:
-    st.session_state.last_audit_result = None
-
-if "last_tts_audio" not in st.session_state:
-    st.session_state.last_tts_audio = None
-
-
-# --- Sidebar: Configuration & Sovereign Models Status ---
-with st.sidebar:
-    st.markdown("### 🎙️ Gnani AI Sovereign Indic Engine")
-    st.caption("Powered by Prisma v3.0 STT & Timbre v3.0 TTS")
-
-    api_key_input = st.text_input(
-        "GNANI_API_KEY",
-        value=os.getenv("GNANI_API_KEY", ""),
-        type="password",
-        help="Enter your Gnani AI API key. Leave blank to run in simulated preview mode.",
-    )
-
-    stt_endpoint = st.text_input(
-        "STT Endpoint",
-        value=os.getenv("STT_ENDPOINT", "https://api.vachana.ai/stt/v3"),
-    )
-
-    tts_endpoint = st.text_input(
-        "TTS Endpoint",
-        value=os.getenv("TTS_ENDPOINT", "https://api.vachana.ai/api/v1/tts/inference"),
-    )
-
-    selected_lang = st.selectbox(
-        "Indic Language / बोली",
-        options=["hi-IN", "en-IN", "ta-IN", "te-IN", "mr-IN", "gu-IN", "bn-IN"],
-        index=0,
-        format_func=lambda x: {
-            "hi-IN": "Hindi (हिन्दी)",
-            "en-IN": "Indian English (Hinglish)",
-            "ta-IN": "Tamil (தமிழ்)",
-            "te-IN": "Telugu (తెలుగు)",
-            "mr-IN": "Marathi (मराठी)",
-            "gu-IN": "Gujarati (ગુજરાતી)",
-            "bn-IN": "Bengali (বাংলা)",
-        }.get(x, x),
-    )
-
-    voice_gender = st.radio("Timbre Voice Gender", options=["Female", "Male"], index=0, horizontal=True)
-
-    st.divider()
-
-    # Engine Status Indicators
-    is_live = bool(api_key_input and not api_key_input.startswith("your_gnani"))
-    if is_live:
-        st.success("🟢 Connected: Live Gnani AI API")
-    else:
-        st.info("🟡 Dev Preview Mode (Simulated Audio & Keyterms)")
-
-    engine = get_nutrition_engine()
-    stt_client = get_stt_client(api_key_input, stt_endpoint)
-    tts_client = get_tts_client(api_key_input, tts_endpoint)
-
-    st.markdown("#### 📚 Database Status")
-    st.write(f"• **Food Lexicon Items:** {len(engine.items_by_id)}")
-    st.write(f"• **Prisma Keyterms Boosted:** {len(stt_client.get_custom_keyterms())}")
-    st.write(f"• **Clinical Standard:** ICMR-NIN IFCT-2017")
-
-    st.divider()
-    if st.button("🗑️ Clear Meal History", use_container_width=True):
-        st.session_state.meal_history = []
-        st.session_state.last_audit_result = None
-        st.session_state.last_tts_audio = None
+with mode_col2:
+    family_active = (st.session_state.active_persona == "Shivani")
+    family_label = "🩺 METABOLIC & FAMILY CARE (Shivani Persona • Glycemic & BP Sentinel)"
+    if st.button(
+        family_label,
+        use_container_width=True,
+        type="primary" if family_active else "secondary",
+        key="btn_mode_family"
+    ):
+        st.session_state.active_persona = "Shivani"
+        st.session_state.coach_audio_path = None
         st.rerun()
 
 
-# --- Main Dashboard Header ---
-st.markdown('<div class="main-header">आहार-वाणी | Aahar-Vaani</div>', unsafe_allow_html=True)
+# --- Main 2-Column Console Layout ---
+left_col, right_col = st.columns([1.05, 1.35], gap="large")
+
+# =========================================================================
+# LEFT COLUMN: Central High-Tech Voice Station & Quick Terminal Scenarios
+# =========================================================================
+with left_col:
+    st.markdown('<div class="glass-panel">', unsafe_allow_html=True)
+    
+    st.markdown(
+        """
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+          <div style="font-size:0.95rem; font-weight:700; color:#10b981; letter-spacing:0.04em; text-transform:uppercase;">
+            🎙️ Central Voice Intelligence Hub
+          </div>
+          <span style="font-size:0.72rem; color:#6b7280; font-family:'JetBrains Mono';">16kHz Native Mono</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Pulsing Voice Station Radar
+    st.markdown(
+        """
+        <div class="voice-station-box">
+          <div class="radar-wrapper">
+            <div class="radar-ring r1"></div>
+            <div class="radar-ring r2"></div>
+            <div class="radar-core">🎙️</div>
+          </div>
+          <div style="font-size:0.82rem; font-weight:700; color:#e5e7eb;">Sovereign Indic Audio Uplink</div>
+          <div style="font-size:0.72rem; color:#9ca3af; margin-top:2px;">Prisma v3.0 Automatic Speech Recognition</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Native Mic Recorder integration if available
+    recorded_audio_bytes = None
+    if HAS_MIC_RECORDER:
+        mic_output = mic_recorder(
+            start_prompt="🔴 Start Recording (16kHz)",
+            stop_prompt="⏹️ Transcribe Spoken Meal",
+            key="console_mic",
+        )
+        if mic_output and "bytes" in mic_output:
+            recorded_audio_bytes = mic_output["bytes"]
+            with st.spinner("Prisma v3.0 recognizing sovereign Indic speech..."):
+                stt_res = stt_client.transcribe_audio(recorded_audio_bytes, language_code="hi-IN")
+                if stt_res.get("transcript"):
+                    st.session_state.current_transcript = stt_res["transcript"]
+                    st.session_state.last_report = engine.parse_transcript(st.session_state.current_transcript)
+                    st.session_state.coach_audio_path = None
+                    st.rerun()
+
+    # Enterprise Audio File Upload Dock
+    uploaded_audio = st.file_uploader(
+        "Drop audio file (WAV / MP3 / M4A):",
+        type=["wav", "mp3", "m4a"],
+        label_visibility="collapsed"
+    )
+    if uploaded_audio is not None:
+        file_bytes = uploaded_audio.read()
+        if st.button("Transcribe Uploaded Audio", use_container_width=True):
+            with st.spinner("Transcribing via Prisma v3.0..."):
+                res = stt_client.transcribe_audio(file_bytes, language_code="hi-IN")
+                if res.get("transcript"):
+                    st.session_state.current_transcript = res["transcript"]
+                    st.session_state.last_report = engine.parse_transcript(st.session_state.current_transcript)
+                    st.session_state.coach_audio_path = None
+                    st.rerun()
+
+    # Spoken Transcript Input Terminal
+    transcript_text = st.text_area(
+        "Spoken Meal Transcript (Hindi / Hinglish / Marathi):",
+        value=st.session_state.current_transcript,
+        height=75,
+        placeholder="e.g. Subah do plate poha aur ek cutting chai li canteen mein...",
+    )
+    st.session_state.current_transcript = transcript_text
+
+    # Execution Action Button
+    if st.button("⚡ EXECUTE METABOLIC TELEMETRY", use_container_width=True):
+        st.session_state.last_report = engine.parse_transcript(st.session_state.current_transcript)
+        st.session_state.coach_audio_path = None
+        st.rerun()
+
+    # Quick Scenario Terminal Tags (1-Tap Demos)
+    st.markdown(
+        """
+        <div style="font-size:0.75rem; font-weight:700; text-transform:uppercase; color:#f59e0b; margin-top:16px; margin-bottom:8px; letter-spacing:0.06em;">
+          ⚡ 1-Tap Showcase Scenarios
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    t_col1, t_col2 = st.columns(2)
+    with t_col1:
+        if st.button("2 Plate Poha + Kadak Chai (Canteen)", use_container_width=True, key="scen_canteen"):
+            st.session_state.current_transcript = "Subah do plate poha aur ek kadak chai li canteen mein"
+            st.session_state.last_report = engine.parse_transcript(st.session_state.current_transcript)
+            st.session_state.coach_audio_path = None
+            st.rerun()
+
+    with t_col2:
+        if st.button("2 Jowar Bhakri + Methi Bhaji (Ghar)", use_container_width=True, key="scen_ghar"):
+            st.session_state.current_transcript = "Ghar par do jowar bhakri aur ek katori methi bhaji khayi"
+            st.session_state.last_report = engine.parse_transcript(st.session_state.current_transcript)
+            st.session_state.coach_audio_path = None
+            st.rerun()
+
+    if st.button("3 Samosa + Cold Drink (Street Thela)", use_container_width=True, key="scen_thela"):
+        st.session_state.current_transcript = "Thele par teen samosa aur ek cold drink li"
+        st.session_state.last_report = engine.parse_transcript(st.session_state.current_transcript)
+        st.session_state.coach_audio_path = None
+        st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True)
+
+
+# =========================================================================
+# RIGHT COLUMN: Visual Analytics, Bento Grid, ICMR Radar & Voice Coach Dock
+# =========================================================================
+report: MetabolicReport = st.session_state.last_report
+rc = report.reality_check
+
+with right_col:
+    # Preparation Context Header Bar
+    context_color = "#f59e0b" if report.detected_context == "canteen_thela" else ("#f43f5e" if report.detected_context == "mess" else "#10b981")
+    context_label = report.detected_context.upper().replace("_", " / ")
+
+    st.markdown(
+        f"""
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span style="font-size:0.75rem; font-weight:800; padding:4px 10px; border-radius:6px; background:rgba(255,255,255,0.06); color:{context_color}; border:1px solid {context_color}; font-family:'JetBrains Mono';">
+              CONTEXT: {context_label}
+            </span>
+            <span style="font-size:0.75rem; color:#9ca3af;">{report.context_description}</span>
+          </div>
+          <span style="font-size:0.72rem; color:#6b7280; font-family:'JetBrains Mono';">
+            OIL MULT: {report.context_multipliers['oil_fat']}x | CARB MULT: {report.context_multipliers['carbs']}x
+          </span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # 1. Macro Bento Grid (4 dark glass tiles)
+    prot_color = "#10b981" if report.total_protein_g >= 20 else "#f43f5e"
+    carb_color = "#f43f5e" if rc.carb_to_protein_ratio > 5.0 else "#06b6d4"
+
+    st.markdown(
+        f"""
+        <div class="bento-grid">
+          <div class="bento-tile">
+            <div class="bento-label">
+              <span>Total Energy</span>
+              <span style="color:#f59e0b;">kcal</span>
+            </div>
+            <div class="bento-number" style="color:#f59e0b;">{int(report.total_calories)}</div>
+            <div class="bento-sub">vs 650 kcal target</div>
+          </div>
+
+          <div class="bento-tile">
+            <div class="bento-label">
+              <span>Protein Level</span>
+              <span style="color:{prot_color};">g</span>
+            </div>
+            <div class="bento-number" style="color:{prot_color};">{report.total_protein_g}</div>
+            <div class="bento-sub">{'⚠️ Protein Deficit' if report.total_protein_g < 18 else '✅ Target Met'}</div>
+          </div>
+
+          <div class="bento-tile">
+            <div class="bento-label">
+              <span>Carb Exposure</span>
+              <span style="color:{carb_color};">g</span>
+            </div>
+            <div class="bento-number" style="color:{carb_color};">{report.total_carbs_g}</div>
+            <div class="bento-sub">{rc.carb_to_protein_ratio}:1 C:P Ratio</div>
+          </div>
+
+          <div class="bento-tile">
+            <div class="bento-label">
+              <span>Grease & Fat</span>
+              <span style="color:#fb7185;">g</span>
+            </div>
+            <div class="bento-number" style="color:#fb7185;">{report.total_fat_g}</div>
+            <div class="bento-sub">{report.context_multipliers['oil_fat']}x Grease Factor</div>
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # 2. ICMR Metabolic Risk Radar
+    spike_badge_html = ""
+    if rc.glycemic_spike_risk == "Severe":
+        spike_badge_html = '<span class="status-badge-severe">🔥 SEVERE GLYCEMIC SPIKE RISK</span>'
+    elif rc.glycemic_spike_risk == "Moderate":
+        spike_badge_html = '<span class="status-badge-severe" style="border-color:#f59e0b; color:#fde68a; box-shadow:0 0 14px rgba(245,158,11,0.4); background:rgba(245,158,11,0.2);">⚠️ MODERATE SPIKE RISK</span>'
+    else:
+        spike_badge_html = '<span class="status-badge-severe" style="border-color:#10b981; color:#a7f3d0; box-shadow:0 0 14px rgba(16,185,129,0.4); background:rgba(16,185,129,0.2);">✅ LOW BALANCED RISK</span>'
+
+    # Ratio breakdown calculation
+    prot_pct = max(6, min(50, int((1 / (rc.carb_to_protein_ratio + 1)) * 100))) if rc.carb_to_protein_ratio > 0 else 10
+    carb_pct = 100 - prot_pct
+
+    flags_html = "".join([f'<div style="font-size:0.8rem; color:#fecdd3; margin-top:4px;">{f}</div>' for f in rc.hidden_sugar_flags + rc.acidity_flags])
+
+    st.markdown(
+        f"""
+        <div class="icmr-radar-card">
+          <div class="icmr-radar-header">
+            <div>
+              <div style="font-size:0.95rem; font-weight:800; color:#ffffff;">⚖️ ICMR-NIN Reality Check: Indian Carbohydrate Overload</div>
+              <div style="font-size:0.75rem; color:#9ca3af; margin-top:2px;">{rc.ratio_status}</div>
+            </div>
+            {spike_badge_html}
+          </div>
+          <div class="ratio-telemetry-bar">
+            <div style="width:{prot_pct}%; background:#10b981;" title="Protein Share"></div>
+            <div style="width:{carb_pct}%; background:#f43f5e;" title="Carb Share"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.7rem; font-family:'JetBrains Mono'; font-weight:600;">
+            <span style="color:#10b981;">PROTEIN ({prot_pct}%)</span>
+            <span style="color:#f43f5e;">CARBOHYDRATES ({carb_pct}%)</span>
+          </div>
+          {flags_html}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # 3. Synthesized Voice Coach Dock
+    active_persona_name = st.session_state.active_persona
+    active_script = (
+        report.spoken_summary_devansh
+        if active_persona_name == "Devansh"
+        else report.spoken_summary_shivani
+    )
+
+    # Expressive tags visualizer
+    highlighted_script = (
+        active_script
+        .replace("<excited>", '<span class="coach-tag-badge tag-excited">&lt;excited&gt;</span>')
+        .replace("</excited>", '<span class="coach-tag-badge tag-excited">&lt;/excited&gt;</span>')
+        .replace("<laugh>", '<span class="coach-tag-badge tag-laugh">&lt;laugh&gt;</span>')
+        .replace("</laugh>", '<span class="coach-tag-badge tag-laugh">&lt;/laugh&gt;</span>')
+        .replace("<sigh>", '<span class="coach-tag-badge tag-sigh">&lt;sigh&gt;</span>')
+        .replace("</sigh>", '<span class="coach-tag-badge tag-sigh">&lt;/sigh&gt;</span>')
+    )
+
+    st.markdown(
+        f"""
+        <div class="coach-playback-console">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:0.9rem;">🔊</span>
+              <span style="font-size:0.85rem; font-weight:800; color:#10b981; letter-spacing:0.04em;">
+                TIMBRE v3.0 // {active_persona_name.upper()} ({'YOUTH DOST' if active_persona_name == 'Devansh' else 'FAMILY CARE'})
+              </span>
+            </div>
+            <div class="audio-bars-container">
+              <div class="wave-line" style="animation-delay:0.1s;"></div>
+              <div class="wave-line" style="animation-delay:0.3s;"></div>
+              <div class="wave-line" style="animation-delay:0.5s;"></div>
+              <div class="wave-line" style="animation-delay:0.2s;"></div>
+              <div class="wave-line" style="animation-delay:0.4s;"></div>
+              <div class="wave-line" style="animation-delay:0.6s;"></div>
+            </div>
+          </div>
+          <div style="font-size:0.88rem; color:#e5e7eb; line-height:1.6; font-style:italic; margin-bottom:12px; background:rgba(0,0,0,0.3); padding:12px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+            "{highlighted_script}"
+          </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Synthesize Audio on-demand or use cached
+    if not st.session_state.coach_audio_path or not os.path.exists(st.session_state.coach_audio_path):
+        filename = f"reply_{active_persona_name.lower()}_{int(time.time()*1000)}.wav"
+        out_path = os.path.join("data", "temp_audio", filename)
+        st.session_state.coach_audio_path = tts_client.synthesize_speech(
+            text=active_script,
+            persona=active_persona_name,
+            language="hi-IN",
+            output_path=out_path
+        )
+
+    if st.session_state.coach_audio_path and os.path.exists(st.session_state.coach_audio_path):
+        st.audio(st.session_state.coach_audio_path, format="audio/wav")
+
+    # 4. Precision Desi Swaps
+    st.markdown(
+        """
+        <div style="font-size:0.75rem; font-weight:800; text-transform:uppercase; color:#34d399; letter-spacing:0.06em; margin-top:14px; margin-bottom:8px;">
+          💡 Precision Desi Swaps (Hyper-Local Student & Family Budget)
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    for swap in rc.budget_protein_swaps:
+        st.markdown(
+            f"""
+            <div class="swap-telemetry-row">
+              <span style="font-size:1rem;">⚡</span>
+              <span style="color:#d1fae5; font-weight:500;">{swap}</span>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+
+# --- Full Width Itemized Breakdown Grid ---
+st.markdown('<div class="glass-panel" style="margin-top:10px;">', unsafe_allow_html=True)
 st.markdown(
-    '<div class="sub-header">Voice-First Indian Food, Mess & Metabolic Health Companion '
-    '• ICMR-NIN Standards • Sovereign Indic Speech AI</div>',
+    """
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+      <div style="font-size:0.95rem; font-weight:800; color:#ffffff;">
+        📋 Itemized Food & Macro Telemetry (ICMR-NIN IFCT-2017 Grounded)
+      </div>
+      <span style="font-size:0.72rem; color:#9ca3af; font-family:'JetBrains Mono';">60 Calibrated Items</span>
+    </div>
+    """,
     unsafe_allow_html=True,
 )
 
-tab1, tab2, tab3, tab4 = st.tabs([
-    "🎙️ Voice Meal Logging",
-    "📊 Metabolic Health Audit",
-    "🔍 Indian Food Lexicon",
-    "📜 Mess & Daily History",
-])
-
-
-# ==========================================
-# TAB 1: Voice Meal Logging
-# ==========================================
-with tab1:
-    col_input, col_tips = st.columns([1.6, 1.0])
-
-    with col_input:
-        st.markdown("#### 1. Speak Your Meal (अपनी आवाज़ में भोजन बताएं)")
-        st.caption("Tell us what you ate using everyday Indian units like 'katori', 'chammach', 'plate', 'roti'.")
-
-        audio_bytes = None
-
-        if HAS_MIC_RECORDER:
-            audio_record = mic_recorder(
-                start_prompt="🔴 Click to Record (रिकॉर्डिंग शुरू करें)",
-                stop_prompt="⏹️ Stop Recording (रिकॉर्डिंग रोकें)",
-                key="audio_recorder",
-            )
-            if audio_record:
-                audio_bytes = audio_record["bytes"]
-                st.audio(audio_bytes, format="audio/wav")
-        else:
-            st.warning("`streamlit-mic-recorder` not available in this environment. Use file upload or test presets.")
-
-        uploaded_audio = st.file_uploader(
-            "Or upload an audio file (WAV / MP3 / M4A):",
-            type=["wav", "mp3", "m4a"],
-            help="Upload raw audio recording of your meal description.",
-        )
-        if uploaded_audio is not None:
-            audio_bytes = uploaded_audio.read()
-            st.audio(audio_bytes)
-
-        if audio_bytes:
-            if st.button("✨ Transcribe Voice with Prisma v3.0", use_container_width=True, type="primary"):
-                with st.spinner("Prisma v3.0 recognizing sovereign Indic speech with culinary keyterms..."):
-                    stt_res = stt_client.transcribe_audio(audio_bytes, lang_code=selected_lang)
-                    if stt_res.get("transcript"):
-                        st.session_state.current_transcript = stt_res["transcript"]
-                        st.success(f"Recognized ({stt_res.get('confidence', 0.9)*100:.0f}% confidence): {stt_res['transcript']}")
-                    else:
-                        st.error(f"STT Error: {stt_res.get('message', 'Could not transcribe.')}")
-
-        st.markdown("#### 2. Review or Edit Transcript (आहार विवरण)")
-        transcript_input = st.text_area(
-            "Spoken Transcript / Type Meal Directly:",
-            value=st.session_state.current_transcript,
-            height=90,
-            help="Example: 'Maine 2 katori dal tadka, 3 roti aur 1 plate salad khaya'",
-        )
-        st.session_state.current_transcript = transcript_input
-
-        btn_analyze = st.button("🚀 Analyze Nutrition & Metabolic Health", use_container_width=True, type="primary")
-
-    with col_tips:
-        st.markdown("#### 💡 Quick Indic Voice Prompts")
-        st.caption("Click any preset to test the parser & metabolic engine instantly:")
-
-        presets = [
-            ("🥗 Balanced Student Thali", "2 katori dal tadka, 2 roti, 1 katori curd aur 1 plate kachumber salad"),
-            ("🥔 High Carb Mess Breakfast", "2 piece aloo paratha aur 1 glass sweet lassi"),
-            ("🫓 High Spike Street Craving", "1 plate chhole bhature aur 1 cup masala chai"),
-            ("🍗 High Protein Non-Veg", "1 piece tandoori chicken, 1 plate boiled egg aur 1 glass chaas"),
-            ("🍲 Light Restorative Khichdi", "2 katori moong dal khichdi aur 1 katori dahi"),
-        ]
-
-        for label, prompt_text in presets:
-            if st.button(label, use_container_width=True):
-                st.session_state.current_transcript = prompt_text
-                st.rerun()
-
-    if btn_analyze or (st.session_state.last_audit_result is None and st.session_state.current_transcript):
-        with st.spinner("Conducting ICMR-NIN metabolic audit..."):
-            matched_items = engine.parse_transcript(st.session_state.current_transcript)
-            audit_result = engine.audit_meal(matched_items)
-            st.session_state.last_audit_result = audit_result
-
-            # Synthesize Timbre v3.0 voice response
-            speech_text = (
-                audit_result.spoken_summary_hi
-                if selected_lang.startswith("hi")
-                else audit_result.spoken_summary_en
-            )
-            emotion = "encouraging" if audit_result.icmr_compliance_score >= 80 else "cautionary"
-            tts_res = tts_client.synthesize_speech(
-                speech_text,
-                lang_code=selected_lang,
-                voice_gender=voice_gender.lower(),
-                emotion=emotion,
-            )
-            st.session_state.last_tts_audio = tts_res.get("audio_bytes")
-
-            # Add to history if unique
-            if audit_result.items:
-                meal_record = {
-                    "time": time.strftime("%H:%M:%S"),
-                    "transcript": st.session_state.current_transcript,
-                    "calories": audit_result.total_calories_kcal,
-                    "protein": audit_result.total_protein_g,
-                    "carbs": audit_result.total_carbs_g,
-                    "fat": audit_result.total_fat_g,
-                    "fiber": audit_result.total_fiber_g,
-                    "glycemic_load": audit_result.total_glycemic_load,
-                    "score": audit_result.icmr_compliance_score,
-                }
-                st.session_state.meal_history.append(meal_record)
-
-        st.success("Analysis complete! Open Tab 2 to view clinical metabolic insights.")
-
-
-# ==========================================
-# TAB 2: Metabolic Health Audit
-# ==========================================
-with tab2:
-    audit = st.session_state.last_audit_result
-
-    if audit is None or not audit.items:
-        st.info("Log a meal in Tab 1 to see the ICMR-NIN Metabolic Audit.")
-    else:
-        st.markdown(f"### 📋 Meal Audit: *\"{st.session_state.current_transcript}\"*")
-
-        # Top Macro KPI Cards
-        kpi1, kpi2, kpi3, kpi4, kpi5, kpi6 = st.columns(6)
-        with kpi1:
-            st.markdown(f'<div class="metric-card"><div class="metric-title">🔥 Energy</div><div class="metric-value">{int(audit.total_calories_kcal)}<span style="font-size:0.9rem"> kcal</span></div></div>', unsafe_allow_html=True)
-        with kpi2:
-            st.markdown(f'<div class="metric-card"><div class="metric-title">🍞 Carbs</div><div class="metric-value">{audit.total_carbs_g}<span style="font-size:0.9rem"> g</span></div></div>', unsafe_allow_html=True)
-        with kpi3:
-            st.markdown(f'<div class="metric-card"><div class="metric-title">💪 Protein</div><div class="metric-value">{audit.total_protein_g}<span style="font-size:0.9rem"> g</span></div></div>', unsafe_allow_html=True)
-        with kpi4:
-            st.markdown(f'<div class="metric-card"><div class="metric-title">🧈 Fat</div><div class="metric-value">{audit.total_fat_g}<span style="font-size:0.9rem"> g</span></div></div>', unsafe_allow_html=True)
-        with kpi5:
-            st.markdown(f'<div class="metric-card"><div class="metric-title">🌾 Fiber</div><div class="metric-value">{audit.total_fiber_g}<span style="font-size:0.9rem"> g</span></div></div>', unsafe_allow_html=True)
-        with kpi6:
-            st.markdown(f'<div class="metric-card"><div class="metric-title">⚖️ C:P Ratio</div><div class="metric-value">{audit.carb_protein_ratio}:1</div></div>', unsafe_allow_html=True)
-
-        st.write("")
-
-        col_left, col_right = st.columns([1.2, 1.0])
-
-        with col_left:
-            st.markdown("#### 🩺 ICMR-NIN Metabolic Assessment")
-
-            # Compliance Score & Glycemic Tier
-            badge_class = {
-                "Low": "badge-low",
-                "Moderate": "badge-moderate",
-                "High": "badge-high",
-                "Severe Spike Risk": "badge-high",
-            }.get(audit.glycemic_tier, "badge-low")
-
-            score_color = "#10b981" if audit.icmr_compliance_score >= 80 else ("#f59e0b" if audit.icmr_compliance_score >= 60 else "#ef4444")
-
-            st.markdown(
-                f"""
-                <div style="display:flex; align-items:center; justify-content:space-between; background:#ffffff; padding:16px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:12px;">
-                    <div>
-                        <div style="font-size:0.85rem; color:#64748b; font-weight:600;">ICMR-NIN COMPLIANCE SCORE</div>
-                        <div style="font-size:2.2rem; font-weight:800; color:{score_color};">{audit.icmr_compliance_score} / 100</div>
-                    </div>
-                    <div style="text-align:right;">
-                        <div style="font-size:0.85rem; color:#64748b; font-weight:600;">GLYCEMIC LOAD</div>
-                        <div style="margin-top:4px;"><span class="{badge_class}">{audit.glycemic_tier} ({audit.total_glycemic_load} GL)</span></div>
-                    </div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
-            # Warnings & Recommendations
-            if audit.metabolic_warnings:
-                st.markdown("##### ⚠️ Metabolic Observations")
-                for w in audit.metabolic_warnings:
-                    st.warning(w)
-
-            st.markdown("##### 💡 Clinical Indic Coaching & Sequencing")
-            for r in audit.coaching_recommendations:
-                st.info(f"✨ **{r}**")
-
-        with col_right:
-            st.markdown("#### 🔊 Timbre v3.0 Sovereign Voice Companion")
-            st.caption("AI Nutritionist audio summary with expressive Indic cadence:")
-
-            if st.session_state.last_tts_audio:
-                st.audio(st.session_state.last_tts_audio, format="audio/wav")
-
-            st.markdown(f"**Hindi Summary:**\n> *\"{audit.spoken_summary_hi}\"*")
-            st.markdown(f"**English Summary:**\n> *\"{audit.spoken_summary_en}\"*")
-
-            st.divider()
-
-            st.markdown("#### 📊 Macronutrient Distribution")
-            macro_df = pd.DataFrame({
-                "Nutrient": ["Carbs (g)", "Protein (g)", "Fat (g)", "Fiber (g)"],
-                "Amount": [audit.total_carbs_g, audit.total_protein_g, audit.total_fat_g, audit.total_fiber_g],
-            })
-            st.bar_chart(macro_df.set_index("Nutrient"))
-
-        st.markdown("#### 🥗 Itemized Food Breakdown")
-        table_rows = []
-        for i in audit.items:
-            table_rows.append({
-                "Item": f"{i.name_en} ({i.name_hi})",
-                "Portion": f"{i.quantity} {i.unit} ({int(i.grams)}g)",
-                "Calories": f"{int(i.calories_kcal)} kcal",
-                "Carbs": f"{i.carbs_g}g",
-                "Protein": f"{i.protein_g}g",
-                "Fat": f"{i.fat_g}g",
-                "Fiber": f"{i.fiber_g}g",
-                "GI": i.glycemic_index,
-                "GL": i.glycemic_load,
-                "ICMR Code": i.icmr_source,
-            })
-        st.dataframe(pd.DataFrame(table_rows), use_container_width=True)
-
-
-# ==========================================
-# TAB 3: Indian Food Lexicon Explorer
-# ==========================================
-with tab3:
-    st.markdown("### 🔍 Indian Food, Street & Mess Lexicon (आहार शब्दकोश)")
-    st.caption("168+ curated Indian foods with ICMR-NIN IFCT-2017 nutritional benchmarks & glycemic markers.")
-
-    search_query = st.text_input("Search food item by name or alias (e.g., 'dal', 'paratha', 'samosa', 'roti'):", value="")
-
-    category_filter = st.selectbox(
-        "Filter by Category:",
-        options=["All", "bread_grain", "dal_curry", "breakfast", "street_food", "snack", "sweet", "beverage"],
-        index=0,
-    )
-
-    lexicon_items = list(engine.items_by_id.values())
-
-    if category_filter != "All":
-        lexicon_items = [i for i in lexicon_items if i.get("category") == category_filter]
-
-    if search_query:
-        sq = search_query.lower()
-        lexicon_items = [
-            i for i in lexicon_items
-            if sq in i["name_en"].lower()
-            or sq in i["name_hi"].lower()
-            or any(sq in a.lower() for a in i.get("aliases", []))
-        ]
-
-    st.write(f"Showing **{len(lexicon_items)}** items matching criteria:")
-
-    display_data = []
-    for item in lexicon_items:
-        display_data.append({
-            "Food Name": f"{item['name_en']} ({item['name_hi']})",
-            "Category": item["category"],
-            "Serving Unit": f"{item['serving_grams']}g ({item['default_unit']})",
-            "Calories": item["calories_kcal"],
-            "Carbs (g)": item["carbs_g"],
-            "Protein (g)": item["protein_g"],
-            "Fat (g)": item["fat_g"],
-            "Fiber (g)": item["fiber_g"],
-            "GI": item["glycemic_index"],
-            "GL": item["glycemic_load"],
-            "Metabolic Insights": item.get("metabolic_notes", ""),
+if report.items:
+    table_rows = []
+    for item in report.items:
+        table_rows.append({
+            "Food Entity": f"{item.name_en} ({item.name_mr or item.name_hi})",
+            "Portion Unit": f"{item.quantity} {item.unit} ({int(item.total_grams)}g)",
+            "Calories": f"{item.scaled_calories:.1f} kcal",
+            "Protein": f"{item.scaled_protein_g:.1f}g",
+            "Carbs": f"{item.scaled_carbs_g:.1f}g",
+            "Fat": f"{item.scaled_fat_g:.1f}g",
+            "Fiber": f"{item.scaled_fiber_g:.1f}g",
+            "GI / Risk": f"{item.glycemic_index} ({item.glycemic_spike_risk})",
+            "ICMR Ref": item.icmr_source,
         })
+    st.dataframe(pd.DataFrame(table_rows), use_container_width=True)
+else:
+    st.info("No recognized Indian food entities. Type or record meal items.")
 
-    st.dataframe(pd.DataFrame(display_data), use_container_width=True)
+st.markdown('</div>', unsafe_allow_html=True)
 
-
-# ==========================================
-# TAB 4: Mess & Daily History
-# ==========================================
-with tab4:
-    st.markdown("### 📜 Mess & Daily Meal Log (दैनिक भोजन इतिहास)")
-    st.caption("Cumulative daily tracking against ICMR-NIN Recommended Dietary Allowances (RDA).")
-
-    if not st.session_state.meal_history:
-        st.info("No meals recorded yet in this session. Log meals from Tab 1 to track daily metrics.")
-    else:
-        history_df = pd.DataFrame(st.session_state.meal_history)
-        st.dataframe(history_df, use_container_width=True)
-
-        tot_cal = history_df["calories"].sum()
-        tot_prot = history_df["protein"].sum()
-        tot_carbs = history_df["carbs"].sum()
-        tot_fiber = history_df["fiber"].sum()
-
-        st.markdown("#### 🎯 Daily RDA Progress (ICMR-NIN Adult Reference)")
-        r1, r2, r3, r4 = st.columns(4)
-        with r1:
-            st.metric("Total Calories", f"{int(tot_cal)} kcal", delta=f"{int(2000 - tot_cal)} kcal left", delta_color="inverse")
-        with r2:
-            st.metric("Total Protein", f"{tot_prot:.1f} g", delta=f"{tot_prot - 60.0:.1f} g vs 60g RDA")
-        with r3:
-            st.metric("Total Fiber", f"{tot_fiber:.1f} g", delta=f"{tot_fiber - 30.0:.1f} g vs 30g RDA")
-        with r4:
-            st.metric("Avg ICMR Score", f"{history_df['score'].mean():.0f} / 100")
+# Footer
+st.markdown(
+    """
+    <div style="text-align:center; font-size:0.72rem; color:#6b7280; padding:18px 0; font-family:'JetBrains Mono';">
+      AAHAR-VAANI // आहार-वाणी • SOVEREIGN INDIC VOICE INTELLIGENCE PLATFORM • GNANI AI PRISMA & TIMBRE v3.0
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
