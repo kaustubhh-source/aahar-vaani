@@ -1,18 +1,18 @@
 # आहार-वाणी (Aahar-Vaani)
 > **Voice-First Indian Food, Mess, and Metabolic Health Companion**  
-> Powered by **Streamlit**, **Gnani AI** Sovereign Indic Speech Models (*Prisma v3.0 STT* & *Timbre v3.0 TTS*), and **ICMR-NIN** (National Institute of Nutrition) Nutritional Standards.
+> Powered by **FastAPI**, **Gnani AI** Sovereign Indic Speech Models (*Prisma v3.0 STT* & *Timbre v3.0 TTS*), and **ICMR-NIN** (National Institute of Nutrition) Nutritional Standards.
 
 ---
 
 ## 🌟 Overview
 
-**Aahar-Vaani** (आहार-वाणी) addresses the unique nutritional realities of Indian diets—from hostel and college messes to street food and homestyle thalis. Most global nutrition trackers fail to recognize colloquial Indian food terms, portion units (*katori*, *chammach*, *thali*, *tukda*), and the physiological impact of high-carbohydrate meals on metabolic health.
+**Aahar-Vaani** (आहार-वाणी) addresses the unique nutritional realities of Indian diets—from hostel and college messes to street food and homestyle thalis. Most global nutrition trackers fail to recognize colloquial Indian food terms, portion units (*katori*, *waati*, *cutting*, *chammach*, *dona*, *thali*), and the physiological impact of high-carbohydrate meals on metabolic health.
 
 Aahar-Vaani provides:
-1. **Sovereign Indic Voice Recognition (Prisma v3.0 STT)**: Domain-boosted with 650+ Indian food terms and units to understand Hindi, Hinglish, and regional speech effortlessly.
-2. **Expressive Indic Speech Synthesis (Timbre v3.0 TTS)**: Personalized vocal coaching and nutritional feedback delivered in natural Indian voices with empathetic prosody.
-3. **Clinical Metabolic Health Audit (ICMR-NIN IFCT-2017)**: Real-time analysis of Glycemic Load (GL), Carbohydrate-to-Protein ratios, dietary fiber sufficiency, and meal sequencing strategies to blunt postprandial glucose spikes.
-4. **Curated Indian Food Lexicon**: 168+ authentic Indian dishes with validated macronutrients, glycemic indices, and street portion benchmarks.
+1. **Sovereign Indic Voice Recognition (Prisma v3.0 STT)**: Domain-boosted with 450+ Indian food terms and colloquial units to recognize Hindi, Hinglish, and Marathi speech natively at 16kHz.
+2. **Expressive Indic Speech Synthesis (Timbre v3.0 TTS)**: Personalized vocal coaching with expressive tags (`<excited>`, `<laugh>`, `<sigh>`) across two distinct personas: **Devansh** (Youth/Hostel Dost) and **Shivani** (Family/Elder Care).
+3. **Clinical Metabolic Health Audit (ICMR-NIN IFCT-2017)**: Context-aware analysis (home vs mess vs canteen_thela), Carb-to-Protein ratio auditing, Glycemic Spike Risk assessment, hidden sugar alerts (~9g per cutting chai), and actionable budget Indian protein swaps.
+4. **Venture-Grade Glassmorphic Dashboard**: Deep zinc dark interface (`#09090b`), circular SVG macro rings, glowing Web Audio 16kHz WAV recorder, and 1-tap demo scenario presets.
 
 ---
 
@@ -20,103 +20,73 @@ Aahar-Vaani provides:
 
 ```
 aahar-vaani/
-├── .env.example              # Template for Gnani AI API credentials & endpoints
+├── main.py                    # Production FastAPI Application (Serving API + Frontend)
+├── test_pipeline.py           # End-to-end backend pipeline smoke test
+├── .env.example               # Template for Gnani AI API credentials & endpoints
 ├── .gitignore                 # Strict ignores for venv, secrets, cache & audio scratchpad
-├── requirements.txt           # Pinned dependencies (streamlit, pydantic, scipy, etc.)
-├── README.md                  # Comprehensive architectural and setup documentation
+├── requirements.txt           # Pinned production dependencies (fastapi, uvicorn, pydantic, etc.)
+├── README.md                  # Comprehensive architectural & setup documentation
 ├── core/
-│   ├── __init__.py            # Clean exports for STT, TTS, and NutritionEngine
-│   ├── gnani_stt.py           # Prisma v3.0 connector with 650+ culinary keyterms boosting
-│   ├── gnani_tts.py           # Timbre v3.0 connector with expressive SSML & coaching tags
+│   ├── __init__.py            # Modular exports
+│   ├── gnani_stt.py           # Prisma v3.0 connector with 450+ culinary keyterms boosting
+│   ├── gnani_tts.py           # Timbre v3.0 connector with expressive SSML & coach personas
 │   └── nutrition_engine.py    # ICMR-NIN parser, Indian portion units & metabolic audit
 ├── data/
-│   ├── food_lexicon.json      # 168+ Indian foods with glycemic index, load & ICMR codes
+│   ├── food_lexicon.json      # 59+ validated Indian foods with glycemic index & ICMR codes
 │   └── temp_audio/            # Scratchpad for audio processing (.gitkeep preserved)
-└── app.py                     # Main interactive Streamlit dashboard
+├── frontend/                  # Production-Grade Glassmorphic SaaS Dashboard
+│   ├── index.html             # Sleek dark-mode interface with SVG rings & custom audio bar
+│   ├── styles.css             # Deep Zinc (#09090b), glassmorphism, glowing neon mic ring
+│   └── app.js                 # 16kHz WAV encoder, 1-tap presets, and dynamic DOM visualizer
+└── app.py                     # Legacy prototype Streamlit dashboard
 ```
 
 ---
 
-## ⚙️ Environment Variables (`.env`)
+## 🌐 Production API Endpoints (`main.py`)
 
-Copy `.env.example` to `.env`:
-
-```bash
-cp .env.example .env
-```
-
-Configure your credentials:
-```env
-# Gnani AI Sovereign Indic Speech Model Credentials
-GNANI_API_KEY=your_gnani_api_key_here
-STT_ENDPOINT=https://api.vachana.ai/stt/v3
-TTS_ENDPOINT=https://api.vachana.ai/api/v1/tts/inference
-
-# Speech & Local Settings
-GNANI_LANG_CODE=hi-IN
-AUDIO_TEMP_DIR=data/temp_audio
-STREAMLIT_SERVER_PORT=8501
-```
-
-> **Note:** If `GNANI_API_KEY` is not provided or set to the placeholder, the application automatically runs in **Developer Simulation Mode**, utilizing local audio synthesis and simulated Indic recognition so you can test features offline immediately.
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/transcribe` | Ingests 16kHz Mono WAV or audio file; transcribes via Prisma v3.0 with 450+ keyterms. |
+| `POST` | `/api/analyze` | Executes ICMR-NIN audit, context multipliers, glycemic spike risks, and budget swaps. |
+| `POST` | `/api/coach` | Synthesizes expressive voice response using Timbre v3.0 (`Devansh` / `Shivani`). |
+| `GET` | `/api/audio/{filename}` | Streams generated WAV audio for instant in-browser playback. |
+| `GET` | `/api/health` | Returns system status, keyterm counts, and clinical lexicon parameters. |
+| `GET` | `/` | Serves the production glassmorphic single-page application. |
 
 ---
 
-## 🚀 Setup & Installation (Windows)
+## 🚀 Setup & Launch (Windows)
 
-### Option A: Using PowerShell (Recommended)
+### 1. Launch Production Full-Stack Application (Recommended)
 
-1. **Navigate to the project root**:
-   ```powershell
-   cd C:\Users\Admin\Documents\aahar-vaani
-   ```
+```powershell
+# 1. Navigate to standalone directory
+cd C:\Users\Admin\Documents\aahar-vaani
 
-2. **Create a Python Virtual Environment**:
-   ```powershell
-   python -m venv venv
-   ```
+# 2. Activate virtual environment (if created)
+.\venv\Scripts\Activate.ps1
 
-3. **Activate the Virtual Environment**:
-   ```powershell
-   .\venv\Scripts\Activate.ps1
-   ```
-   *(If script execution is disabled on your system, run: `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass` then re-run the activation script)*
-
-4. **Upgrade Pip & Install Dependencies**:
-   ```powershell
-   python -m pip install --upgrade pip
-   pip install -r requirements.txt
-   ```
-
-5. **Run the Streamlit Dashboard**:
-   ```powershell
-   streamlit run app.py
-   ```
+# 3. Launch the FastAPI Full-Stack Server
+python -m uvicorn main:app --reload --port 8000
+```
+Open **[http://localhost:8000](http://localhost:8000)** in your browser to experience the sleek glassmorphic dashboard!
 
 ---
 
-### Option B: Using Windows Command Prompt (CMD)
+### 2. Run End-to-End Core Backend Smoke Test
 
-1. **Navigate to the directory**:
-   ```cmd
-   cd C:\Users\Admin\Documents\aahar-vaani
-   ```
+```powershell
+python test_pipeline.py
+```
 
-2. **Create & activate virtual environment**:
-   ```cmd
-   python -m venv venv
-   venv\Scripts\activate.bat
-   ```
+---
 
-3. **Install pinned requirements**:
-   ```cmd
-   pip install -r requirements.txt
-   ```
+### 3. Run Streamlit Dashboard (Alternative)
 
-4. **Launch Application**:
-   ```cmd
-   streamlit run app.py
-   ```
+```powershell
+streamlit run app.py
+```
 
 ---
 
@@ -126,16 +96,8 @@ Aahar-Vaani incorporates metabolic guidelines established by the **Indian Counci
 
 | Metric | Target / Benchmark | Clinical Significance |
 | :--- | :--- | :--- |
-| **Carb:Protein Ratio** | $\le 2.5 : 1$ | Typical Indian meals exceed 5:1. Maintaining $\le 2.5:1$ promotes satiety and prevents muscle wasting. |
-| **Glycemic Load (GL)** | Low ($\le 10$), Mod ($11-19$), High ($\ge 20$) | Predicts the magnitude of blood glucose excursions 45-60 minutes post meal. |
-| **Dietary Fiber** | $\ge 8-10\text{g}$ / main meal | Slows gastric emptying, blunting rapid amylase breakdown of refined starches. |
-| **Meal Sequencing** | Fiber/Curd $\rightarrow$ Protein $\rightarrow$ Carbs | Clinical trials show sequencing reduces glucose spikes by up to 35%. |
-
----
-
-## 🔁 Git Automation & Workflow
-
-In accordance with project engineering rules:
-- All sensitive credentials (`.env`) and generated audio binaries (`*.wav`, `data/temp_audio/*`) are excluded from version control.
-- Every completed milestone and feature is tracked via standard **Conventional Commits** (`feat:`, `fix:`, `chore:`, `docs:`).
-- Continuous synchronization is enforced via `git push origin <active-branch>` upon remote setup.
+| **Carb:Protein Ratio** | $\le 2.5 : 1$ | Typical Indian meals exceed 5:1 (canteen poha + chai reaches 14.8:1). Maintaining $\le 2.5:1$ promotes satiety and prevents muscle wasting. |
+| **Glycemic Spike Risk** | Low / Moderate / Severe | Predicts the magnitude of blood glucose excursions 45-60 minutes post meal. |
+| **Preparation Context** | Home (1.0x) / Mess (1.25x) / Canteen (1.5x) | Adjusts fat and carb density based on street frying oil re-heating and diluted hostel dal. |
+| **Hidden Sugar Flags** | $\le 10\text{g}$ / meal | Flags tapri cutting chai (~9g sugar per cup) and sweet lassi loads. |
+| **Meal Sequencing** | Fiber $\rightarrow$ Protein $\rightarrow$ Carbs | Clinical trials show sequencing reduces glucose spikes by up to 35%. |

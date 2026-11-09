@@ -95,7 +95,7 @@
       "description": "Canteen / Tapri / Thela: 1.5x reheated oil/fat multiplier, high refined sugar/starch, low fiber"
     }
   },
-  "total_items": 57,
+  "total_items": 59,
   "items": [
     {
       "id": "poha",
@@ -1645,6 +1645,62 @@
       "sugar_content_g": 3.0,
       "icmr_source": "IFCT-2017-CB04",
       "metabolic_notes": "Classic Indian composite meal. Notice high carb-to-protein ratio (~4.8:1). Always request extra dal or dahi and eat raw salad first."
+    },
+    {
+      "id": "methi_sabzi",
+      "name_en": "Methi Sabzi / Fenugreek Fry",
+      "name_hi": "मेथी की सब्जी",
+      "name_mr": "मेथीची भाजी",
+      "aliases": [
+        "methi sabzi",
+        "methi",
+        "methichi bhaji",
+        "fenugreek sabzi",
+        "methi ki sabzi"
+      ],
+      "category": "dal_curry",
+      "standard_serving_unit": "katori",
+      "serving_grams": 120,
+      "calories": 95.0,
+      "protein_g": 3.8,
+      "carbs_g": 8.0,
+      "fat_g": 5.0,
+      "fiber_g": 4.5,
+      "glycemic_index": "Low",
+      "glycemic_spike_risk": "Low",
+      "is_refined_carb": false,
+      "is_fried": false,
+      "sugar_content_g": 1.0,
+      "icmr_source": "IFCT-2017-V24",
+      "metabolic_notes": "Rich in trigonelline and dietary fiber; scientifically proven to improve peripheral insulin sensitivity."
+    },
+    {
+      "id": "aamrakhand",
+      "name_en": "Aamrakhand / Mango Shrikhand",
+      "name_hi": "आम्रखंड / मैंगो श्रीखंड",
+      "name_mr": "आम्रखंड / आंबा श्रीखंड",
+      "aliases": [
+        "aamrakhand",
+        "amrakhand",
+        "shrikhand",
+        "mango shrikhand",
+        "amba shrikhand"
+      ],
+      "category": "sweet",
+      "standard_serving_unit": "cup",
+      "serving_grams": 120,
+      "calories": 260.0,
+      "protein_g": 6.5,
+      "carbs_g": 38.0,
+      "fat_g": 9.5,
+      "fiber_g": 0.8,
+      "glycemic_index": "High",
+      "glycemic_spike_risk": "Severe",
+      "is_refined_carb": true,
+      "is_fried": false,
+      "sugar_content_g": 28.0,
+      "icmr_source": "IFCT-2017-SW16",
+      "metabolic_notes": "Hung curd combined with sweet mango puree and sugar; high in dairy protein and calcium, but concentrated simple sugar requires moderation."
     }
   ]
 }

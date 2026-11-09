@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aahar-Vaani (आहार-वाणी) | Sovereign Indic Voice & Metabolic Health Companion</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20width=%2232%22%20height=%2232%22><text y=%2226%22 font-size=%2224%22>🥗</text></svg>">
+</head>
+<body>
+  <div class="container">
+    
+    <!-- Top Navbar -->
+    <header class="header">
+      <div class="logo-group">
+        <div class="brand-badge">🥗</div>
+        <div>
+          <div class="brand-title">आहार-वाणी <span style="font-size:1.15rem; font-weight:600; color:#a1a1aa;">| Aahar-Vaani</span></div>
+          <div class="brand-tagline">
+            <span>Sovereign Indic Voice & ICMR-NIN Metabolic Companion</span>
+            <span class="sovereign-pill">Gnani AI Prisma & Timbre v3.0</span>
+          </div>
+        </div>
+      </div>
+      <div class="header-status">
+        <div class="status-dot"></div>
+        <span id="systemStatusText" style="font-size:0.82rem; color:#a1a1aa; font-weight:600;">Connecting Models...</span>
+      </div>
+    </header>
+
+    <!-- Main Two-Column Layout -->
+    <div class="grid-main">
+      
+      <!-- LEFT COLUMN: Voice Input & 1-Tap Scenarios -->
+      <div class="glass-card">
+        <div class="section-label">🎙️ Sovereign Speech-To-Text</div>
+        <div class="section-title">Speak Your Meal (वाणी आहार लॉग)</div>
+        <p style="font-size:0.85rem; color:#a1a1aa; line-height:1.5;">
+          Speak naturally in Hindi, Hinglish, or Marathi using colloquial units like 
+          <em style="color:#fde68a;">katori, waati, cutting, plate, dona</em>.
+        </p>
+
+        <!-- Glowing Neon Mic Interaction -->
+        <div class="mic-container">
+          <button id="micBtn" class="mic-button" title="Click to Record 16kHz Audio">
+            🎤
+          </button>
+          <div id="micStatusText" class="mic-status-text">
+            Click to record voice (16kHz Native Mono WAV)
+          </div>
+        </div>
+
+        <!-- Editable Transcript Input Area -->
+        <textarea 
+          id="transcriptInput" 
+          class="transcript-box" 
+          rows="3" 
+          placeholder="Or type your meal description (e.g. 'Subah do plate poha aur ek cutting chai li canteen mein')..."
+        ></textarea>
+
+        <div class="action-row">
+          <button id="analyzeBtn" class="btn-primary">
+            <span>⚡</span> Analyze Metabolic Reality
+          </button>
+        </div>
+
+        <!-- Foolproof 1-Tap Demo Scenarios -->
+        <div class="presets-section">
+          <div class="presets-label">
+            <span>✨</span> 1-Tap Demo Scenarios (60s Video Showcase)
+          </div>
+
+          <!-- Preset 1 -->
+          <div class="preset-card" onclick="selectPreset('Subah do plate poha aur ek cutting chai li canteen mein')">
+            <div>
+              <div class="preset-title">1. Canteen Breakfast: 2 Plate Poha + 1 Cutting Chai</div>
+              <div class="preset-sub">"Subah do plate poha aur ek cutting chai li canteen mein"</div>
+            </div>
+            <span class="preset-badge badge-thela">Canteen (1.5x)</span>
+          </div>
+
+          <!-- Preset 2 -->
+          <div class="preset-card" onclick="selectPreset('Raat ko mess mein ek katori dal khichdi aur do aloo paratha khaye')">
+            <div>
+              <div class="preset-title">2. Hostel Mess Dinner: 1 Katori Khichdi + 2 Aloo Paratha</div>
+              <div class="preset-sub">"Raat ko mess mein ek katori dal khichdi aur do aloo paratha khaye"</div>
+            </div>
+            <span class="preset-badge badge-mess">Hostel Mess (1.25x)</span>
+          </div>
+
+          <!-- Preset 3 -->
+          <div class="preset-card" onclick="selectPreset('Ghar par do jowar bhakri, methi sabzi aur ek cup aamrakhand khaya')">
+            <div>
+              <div class="preset-title">3. Family Meal: 2 Jowar Bhakri, Methi Sabzi + 1 Cup Aamrakhand</div>
+              <div class="preset-sub">"Ghar par do jowar bhakri, methi sabzi aur ek cup aamrakhand khaya"</div>
+            </div>
+            <span class="preset-badge badge-home">Home (1.0x)</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Dynamic Results Visualizer -->
+      <div class="glass-card" style="position:relative;">
+        <div id="analysisLoading" style="display:none; position:absolute; inset:0; background:rgba(9,9,11,0.85); backdrop-filter:blur(8px); z-index:20; border-radius:16px; display:flex; align-items:center; justify-content:center; flex-direction:column; gap:12px;">
+          <div style="font-size:2rem; animation:pulse-mic 1s infinite;">🥗</div>
+          <div style="font-size:0.95rem; font-weight:600; color:#10b981;">Auditing ICMR-NIN Metabolic Health...</div>
+        </div>
+
+        <div class="context-header">
+          <div>
+            <span id="contextBadge" class="context-tag badge-thela">CANTEEN / TAPRI (1.5x)</span>
+            <div id="contextDescription" style="font-size:0.75rem; color:#a1a1aa; margin-top:4px;">
+              Reheated oil/fat multiplier, high refined starch
+            </div>
+          </div>
+          <span id="spikeRiskBadge" class="spike-badge spike-severe">
+            🔥 Severe Spike Risk
+          </span>
+        </div>
+
+        <!-- 4 Macro Circular Progress Rings -->
+        <div class="macro-rings-grid">
+          <!-- Calories Ring -->
+          <div class="ring-card">
+            <div class="ring-wrapper">
+              <svg class="ring-svg" viewBox="0 0 76 76">
+                <circle class="ring-bg" cx="38" cy="38" r="32"/>
+                <circle id="ringCal" class="ring-fill ring-fill-cal" cx="38" cy="38" r="32" stroke-dasharray="201.06" stroke-dashoffset="60"/>
+              </svg>
+              <div id="ringCalVal" class="ring-value-center">1174kcal</div>
+            </div>
+            <div class="ring-label">Calories</div>
+            <div class="ring-sub">vs 650 target</div>
+          </div>
+
+          <!-- Protein Ring -->
+          <div class="ring-card">
+            <div class="ring-wrapper">
+              <svg class="ring-svg" viewBox="0 0 76 76">
+                <circle class="ring-bg" cx="38" cy="38" r="32"/>
+                <circle id="ringProt" class="ring-fill ring-fill-prot" cx="38" cy="38" r="32" stroke-dasharray="201.06" stroke-dashoffset="120"/>
+              </svg>
+              <div id="ringProtVal" class="ring-value-center">14g</div>
+            </div>
+            <div class="ring-label">Protein</div>
+            <div class="ring-sub">vs 25g target</div>
+          </div>
+
+          <!-- Carbs Ring -->
+          <div class="ring-card">
+            <div class="ring-wrapper">
+              <svg class="ring-svg" viewBox="0 0 76 76">
+                <circle class="ring-bg" cx="38" cy="38" r="32"/>
+                <circle id="ringCarb" class="ring-fill ring-fill-carb" cx="38" cy="38" r="32" stroke-dasharray="201.06" stroke-dashoffset="30"/>
+              </svg>
+              <div id="ringCarbVal" class="ring-value-center">210g</div>
+            </div>
+            <div class="ring-label">Carbs</div>
+            <div class="ring-sub">vs 65g max</div>
+          </div>
+
+          <!-- Fat Ring -->
+          <div class="ring-card">
+            <div class="ring-wrapper">
+              <svg class="ring-svg" viewBox="0 0 76 76">
+                <circle class="ring-bg" cx="38" cy="38" r="32"/>
+                <circle id="ringFat" class="ring-fill ring-fill-fat" cx="38" cy="38" r="32" stroke-dasharray="201.06" stroke-dashoffset="50"/>
+              </svg>
+              <div id="ringFatVal" class="ring-value-center">31g</div>
+            </div>
+            <div class="ring-label">Fat</div>
+            <div class="ring-sub">vs 20g max</div>
+          </div>
+        </div>
+
+        <!-- ICMR Reality Check Alert Box -->
+        <div class="icmr-alert-box">
+          <div class="icmr-alert-title">
+            <span>⚖️</span>
+            <span>ICMR Reality Check: Indian Carbohydrate Overload</span>
+          </div>
+          <div id="icmrRatioText" class="icmr-alert-body">
+            Extreme Carb-Heavy Imbalance (14.8:1 Carb:Protein vs ICMR ≤2.5:1 benchmark)
+          </div>
+          <div class="ratio-meter">
+            <div id="ratioBarProt" class="ratio-bar-prot" style="width: 7%;" title="Protein Share"></div>
+            <div id="ratioBarCarb" class="ratio-bar-carb" style="width: 93%;" title="Carb Share"></div>
+          </div>
+          <div style="display:flex; justify-content:space-between; font-size:0.7rem; color:#a1a1aa; font-weight:600;">
+            <span style="color:#10b981;">Protein (7%)</span>
+            <span style="color:#f43f5e;">Carbohydrates (93%)</span>
+          </div>
+        </div>
+
+        <!-- Voice Coach Card (Devansh & Shivani) -->
+        <div class="coach-box">
+          <div class="coach-header">
+            <div style="font-size:0.85rem; font-weight:700; color:#10b981; display:flex; align-items:center; gap:6px;">
+              <span>🔊</span> Timbre v3.0 Indic Voice Coach
+            </div>
+            <div class="persona-toggle-group">
+              <button class="persona-btn active" data-persona="Devansh" onclick="setPersona('Devansh')">Devansh (Hostel Dost)</button>
+              <button class="persona-btn" data-persona="Shivani" onclick="setPersona('Shivani')">Shivani (Family Care)</button>
+            </div>
+          </div>
+
+          <div id="coachScriptText" class="coach-script-text">
+            "Arre bhai! &lt;excited&gt; 2 plate कांदे पोहे aur 1 cutting कटिंग चहा daba li? &lt;/excited&gt; &lt;laugh&gt; Taste toh kadak tha, &lt;/laugh&gt; lekin metabolic reality check sun..."
+          </div>
+
+          <!-- Custom Audio Player Bar -->
+          <div class="custom-audio-bar">
+            <button id="playPauseBtn" class="play-pause-btn" title="Play Coach Audio">▶</button>
+            <div class="waveform-placeholder">
+              <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+              <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+              <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+              <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+              <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+              <div class="wave-bar"></div><div class="wave-bar"></div><div class="wave-bar"></div>
+            </div>
+            <span style="font-size:0.75rem; color:#a1a1aa; font-family:var(--font-mono);">Timbre v3.0</span>
+          </div>
+        </div>
+
+        <!-- Hidden Sugars & Acidity Callout Flags -->
+        <div id="flagsContainer">
+          <div class="flag-card">
+            ⚠️ Tapri Cutting Chai: ~9g hidden refined sugar detected! (1 cup chai ≈ 2-2.5 tsp sugar).
+          </div>
+        </div>
+
+        <!-- Pocket-Friendly Protein & Healthy Swaps -->
+        <div style="margin-top:16px;">
+          <div style="font-size:0.78rem; font-weight:700; text-transform:uppercase; color:#34d399; letter-spacing:0.06em; margin-bottom:8px;">
+            💡 Pocket-Friendly Protein & Healthy Swaps
+          </div>
+          <div id="swapsContainer" class="swaps-grid">
+            <div class="swap-card">
+              <span>🥤</span>
+              <span>Sattu Drink Swap: Add 1 glass Namkeen Chana Sattu (+13g cheap plant protein, low GI, costs ₹15).</span>
+            </div>
+            <div class="swap-card">
+              <span>🥚</span>
+              <span>Double Egg Swap: Add 2 boiled eggs or egg bhurji (+13-14g complete bioavailable protein, 0 carb spike).</span>
+            </div>
+            <div class="swap-card">
+              <span>🥜</span>
+              <span>Roasted Chana Swap: Snack on 1 dona Bhuna Chana with skin (+10g protein, 8.5g fiber, costs ₹10).</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- BOTTOM FULL-WIDTH CARD: Itemized Food Breakdown Table -->
+    <div class="glass-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <div style="font-size:1.05rem; font-weight:700; color:#fafafa;">
+          🥗 Itemized Food & Portion Breakdown (ICMR-NIN IFCT-2017)
+        </div>
+        <span style="font-size:0.75rem; color:#71717a;">59 Validated Sovereign Indic Items</span>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th>Food Item</th>
+              <th>Portion / Sizing</th>
+              <th>Calories</th>
+              <th>Protein</th>
+              <th>Carbs</th>
+              <th>Fat</th>
+              <th>Glycemic Index</th>
+            </tr>
+          </thead>
+          <tbody id="itemsTableBody">
+            <tr>
+              <td><strong>Kanda Poha</strong><div style="font-size:0.75rem; color:#71717a;">कांदे पोहे</div></td>
+              <td>2 plate (500g)</td>
+              <td>1079 kcal</td>
+              <td>12.8g</td>
+              <td>195.0g</td>
+              <td>27.5g</td>
+              <td><span style="font-size:0.75rem; color:#f43f5e; font-weight:700;">High</span></td>
+            </tr>
+            <tr>
+              <td><strong>Tapri Cutting Chai (Sweet)</strong><div style="font-size:0.75rem; color:#71717a;">कटिंग चहा</div></td>
+              <td>1 cutting (90g)</td>
+              <td>95 kcal</td>
+              <td>1.4g</td>
+              <td>15.0g</td>
+              <td>3.3g</td>
+              <td><span style="font-size:0.75rem; color:#f43f5e; font-weight:700;">High</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div>Aahar-Vaani (आहार-वाणी) • Venture-Grade Sovereign Indic Speech & Metabolic Health Tech</div>
+      <div style="margin-top:4px; font-size:0.72rem; color:#71717a;">
+        Powered by Gnani AI (Prisma v3.0 STT & Timbre v3.0 TTS) • National Institute of Nutrition (NIN) IFCT Standards
+      </div>
+    </footer>
+
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
