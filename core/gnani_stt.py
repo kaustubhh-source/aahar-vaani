@@ -181,7 +181,7 @@ class GnaniSTTClient:
         }
 
         files = {
-            "audio": (filename, audio_bytes, "audio/wav"),
+            "audio_file": (filename, audio_bytes, "audio/wav"),
         }
 
         data = {

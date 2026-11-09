@@ -155,8 +155,15 @@ async function toggleRecording() {
       audioContext.close();
     }
 
+    // Ensure sufficient audio was captured (at least 0.4s at 16kHz)
+    const samples = flattenFloat32(audioChunks);
+    if (!samples || samples.length < 6400) {
+      statusElem.innerHTML = `<span class="text-amber-400 font-medium">Recording was too short. Tap to speak and describe your meal.</span>`;
+      return;
+    }
+
     // Encode to 16kHz 16-bit Mono WAV
-    const wavBlob = encodeWAV(flattenFloat32(audioChunks), 16000);
+    const wavBlob = encodeWAV(samples, 16000);
     await sendAudioToBackend(wavBlob);
   }
 }
@@ -270,20 +277,21 @@ async function sendAudioToBackend(wavBlob) {
     });
 
     if (!res.ok) {
-      throw new Error(`STT failed with HTTP ${res.status}`);
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || `STT failed with HTTP ${res.status}`);
     }
 
     const data = await res.json();
     if (data.transcript) {
       transcriptBox.value = data.transcript;
-      statusElem.innerHTML = `<span class="text-emerald-400 font-semibold font-mono">Recognized with ${Math.round((data.confidence || 0.95) * 100)}% confidence!</span>`;
+      statusElem.innerHTML = `<span class="text-emerald-400 font-semibold font-mono">Recognized: "${data.transcript}"</span>`;
       await analyzeCurrentMeal(true);
     } else {
       statusElem.innerHTML = `<span class="text-amber-400">Speech transcribed as empty. Try speaking again or select a preset.</span>`;
     }
   } catch (err) {
     console.error("Transcription error:", err);
-    statusElem.innerHTML = `<span class="text-rose-400 font-semibold">Transcription uplink failed.</span> Using fallback simulation.`;
+    statusElem.innerHTML = `<span class="text-rose-400 font-semibold">Transcription uplink error:</span> ${err.message || 'Network error'}.`;
   }
 }
 
