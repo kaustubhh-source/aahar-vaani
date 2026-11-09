@@ -7,6 +7,7 @@ Powered by Gnani AI (Prisma v3.0 STT & Timbre v3.0 TTS) & ICMR-NIN IFCT-2017 Sta
 import os
 import io
 import time
+import hashlib
 import pandas as pd
 import streamlit as st
 from dotenv import load_dotenv
@@ -286,6 +287,36 @@ html, body, .stApp {
     100% { transform: scale(1.3); opacity: 0; }
 }
 
+/* Glass Tabs & Live Audio Input Styling */
+div[data-testid="stTabs"] {
+    background: transparent;
+    margin-bottom: 8px;
+}
+div[data-testid="stTabs"] button[role="tab"] {
+    background: rgba(18, 20, 29, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 8px 8px 0 0 !important;
+    color: #94a3b8 !important;
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    padding: 8px 14px !important;
+    transition: all 0.2s ease !important;
+}
+div[data-testid="stTabs"] button[role="tab"][aria-selected="true"] {
+    background: rgba(16, 185, 129, 0.15) !important;
+    border-color: rgba(16, 185, 129, 0.5) !important;
+    color: #34d399 !important;
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.2) !important;
+}
+div[data-testid="stAudioInput"] {
+    background: rgba(18, 20, 29, 0.8) !important;
+    border: 1px solid rgba(16, 185, 129, 0.3) !important;
+    border-radius: 12px !important;
+    padding: 10px 14px !important;
+    margin: 8px 0 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
 /* 8. Quick Terminal Chips */
 .terminal-chips-group {
     display: flex;
@@ -530,6 +561,9 @@ if "last_report" not in st.session_state:
 if "coach_audio_path" not in st.session_state:
     st.session_state.coach_audio_path = None
 
+if "last_processed_audio_hash" not in st.session_state:
+    st.session_state.last_processed_audio_hash = None
+
 
 # --- 1. Top Navigation & Live Telemetry Header ---
 st.markdown(
@@ -636,40 +670,92 @@ with left_col:
         unsafe_allow_html=True,
     )
 
-    # Native Mic Recorder integration if available
-    recorded_audio_bytes = None
-    if HAS_MIC_RECORDER:
-        mic_output = mic_recorder(
-            start_prompt="🔴 Start Recording (16kHz)",
-            stop_prompt="⏹️ Transcribe Spoken Meal",
-            key="console_mic",
-        )
-        if mic_output and "bytes" in mic_output:
-            recorded_audio_bytes = mic_output["bytes"]
-            with st.spinner("Prisma v3.0 recognizing sovereign Indic speech..."):
-                stt_res = stt_client.transcribe_audio(recorded_audio_bytes, language_code="hi-IN")
-                if stt_res.get("transcript"):
-                    st.session_state.current_transcript = stt_res["transcript"]
-                    st.session_state.last_report = engine.parse_transcript(st.session_state.current_transcript)
-                    st.session_state.coach_audio_path = None
-                    st.rerun()
+    # High-Tech Dual Voice Ingestion: Live Mic vs Audio File
+    tab_mic, tab_upload = st.tabs([
+        "🎙️ Live Microphone (Click to Speak)",
+        "📁 Upload Pre-recorded Audio (WAV / MP3 / M4A)",
+    ])
 
-    # Enterprise Audio File Upload Dock
-    uploaded_audio = st.file_uploader(
-        "Drop audio file (WAV / MP3 / M4A):",
-        type=["wav", "mp3", "m4a"],
-        label_visibility="collapsed"
-    )
-    if uploaded_audio is not None:
-        file_bytes = uploaded_audio.read()
-        if st.button("Transcribe Uploaded Audio", use_container_width=True):
-            with st.spinner("Transcribing via Prisma v3.0..."):
-                res = stt_client.transcribe_audio(file_bytes, language_code="hi-IN")
-                if res.get("transcript"):
-                    st.session_state.current_transcript = res["transcript"]
-                    st.session_state.last_report = engine.parse_transcript(st.session_state.current_transcript)
-                    st.session_state.coach_audio_path = None
-                    st.rerun()
+    with tab_mic:
+        st.markdown(
+            """
+            <div style="background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.22); border-radius:10px; padding:10px 14px; margin-bottom:10px;">
+                <div style="font-size:0.8rem; font-weight:700; color:#34d399; margin-bottom:3px; display:flex; align-items:center; gap:6px;">
+                    <span>🎙️</span> Native Indic Speech Recording (16kHz Prisma Optimized)
+                </div>
+                <div style="font-size:0.75rem; color:#9ca3af; line-height:1.4;">
+                    Click the <b>microphone icon below</b>, speak your meal naturally in <b>Hindi, Hinglish, or Marathi</b> (e.g. <i>"Do plate poha aur ek cutting chai li canteen mein"</i>), then click <b>Stop</b>.
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        # 1. Native Streamlit 16kHz audio input widget
+        if hasattr(st, "audio_input"):
+            live_audio = st.audio_input(
+                "Record your meal via mic",
+                key="console_live_audio_input",
+                label_visibility="collapsed",
+            )
+            if live_audio is not None:
+                audio_bytes = live_audio.read()
+                audio_hash = hashlib.md5(audio_bytes).hexdigest()
+                if st.session_state.get("last_processed_audio_hash") != audio_hash:
+                    st.session_state["last_processed_audio_hash"] = audio_hash
+                    with st.spinner("Prisma v3.0 recognizing sovereign Indic speech..."):
+                        stt_res = stt_client.transcribe_audio(audio_bytes, language_code="hi-IN")
+                        if stt_res.get("transcript"):
+                            st.session_state.current_transcript = stt_res["transcript"]
+                            st.session_state.last_report = engine.parse_transcript(st.session_state.current_transcript)
+                            st.session_state.coach_audio_path = None
+                            st.rerun()
+
+        # 2. Or Streamlit Mic Recorder fallback
+        elif HAS_MIC_RECORDER:
+            mic_output = mic_recorder(
+                start_prompt="🔴 Start Recording (16kHz)",
+                stop_prompt="⏹️ Transcribe Spoken Meal",
+                key="console_mic",
+            )
+            if mic_output and "bytes" in mic_output:
+                audio_bytes = mic_output["bytes"]
+                audio_hash = hashlib.md5(audio_bytes).hexdigest()
+                if st.session_state.get("last_processed_audio_hash") != audio_hash:
+                    st.session_state["last_processed_audio_hash"] = audio_hash
+                    with st.spinner("Prisma v3.0 recognizing sovereign Indic speech..."):
+                        stt_res = stt_client.transcribe_audio(audio_bytes, language_code="hi-IN")
+                        if stt_res.get("transcript"):
+                            st.session_state.current_transcript = stt_res["transcript"]
+                            st.session_state.last_report = engine.parse_transcript(st.session_state.current_transcript)
+                            st.session_state.coach_audio_path = None
+                            st.rerun()
+
+    with tab_upload:
+        st.markdown(
+            """
+            <div style="font-size:0.75rem; color:#9ca3af; margin-bottom:8px;">
+                Drop or browse a pre-recorded audio file in WAV, MP3, or M4A format:
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        uploaded_audio = st.file_uploader(
+            "Drop audio file (WAV / MP3 / M4A):",
+            type=["wav", "mp3", "m4a"],
+            label_visibility="collapsed",
+            key="console_file_uploader",
+        )
+        if uploaded_audio is not None:
+            file_bytes = uploaded_audio.read()
+            if st.button("Transcribe Uploaded Audio File", use_container_width=True, key="btn_transcribe_upload"):
+                with st.spinner("Transcribing via Prisma v3.0..."):
+                    res = stt_client.transcribe_audio(file_bytes, language_code="hi-IN")
+                    if res.get("transcript"):
+                        st.session_state.current_transcript = res["transcript"]
+                        st.session_state.last_report = engine.parse_transcript(st.session_state.current_transcript)
+                        st.session_state.coach_audio_path = None
+                        st.rerun()
 
     # Spoken Transcript Input Terminal
     transcript_text = st.text_area(
