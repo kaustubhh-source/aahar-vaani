@@ -138,7 +138,15 @@ class NutritionEngine:
     """
 
     HINDI_MARATHI_NUMBERS = {
-        # Hindi & Marathi words
+        # Devanagari Numerals & Hindi/Marathi Number Words
+        "एक": 1.0, "दोन": 2.0, "दो": 2.0, "तीन": 3.0, "चार": 4.0,
+        "पांच": 5.0, "पाच": 5.0, "छह": 6.0, "सहा": 6.0, "सात": 7.0,
+        "आठ": 8.0, "नौ": 9.0, "नऊ": 9.0, "दस": 10.0, "दहा": 10.0,
+        "आधा": 0.5, "अर्धा": 0.5, "पाव": 0.25, "डेढ़": 1.5, "दीड": 1.5,
+        "ढाई": 2.5, "अडीच": 2.5, "सवा": 1.25,
+        "१": 1.0, "२": 2.0, "३": 3.0, "४": 4.0, "५": 5.0,
+        "६": 6.0, "७": 7.0, "८": 8.0, "९": 9.0, "१०": 10.0,
+        # Hinglish & Marathi Transliterated words
         "ek": 1.0, "do": 2.0, "don": 2.0, "teen": 3.0, "tin": 3.0,
         "chaar": 4.0, "char": 4.0, "paanch": 5.0, "panch": 5.0, "paach": 5.0,
         "chhah": 6.0, "chhe": 6.0, "saha": 6.0, "saat": 7.0, "aath": 8.0,
@@ -154,22 +162,26 @@ class NutritionEngine:
         "single": 1.0, "double": 2.0, "triple": 3.0,
     }
 
-    # Preparation Context Keywords
+    # Preparation Context Keywords (Bilingual: Devanagari + Romanized)
     CONTEXT_PATTERNS = {
         "canteen_thela": [
             r"\bcanteen\b", r"\btapri\b", r"\bthela\b", r"\bthele\b", r"\bstall\b",
             r"\bstreet\b", r"\bbahar\b", r"\boutside\b", r"\bhotel\b", r"\bdhaba\b",
             r"\bdhabba\b", r"\btapri\s*var\b", r"\bcanteen\s*madhe\b", r"\bcanteen\s*mein\b",
-            r"\bthele\s*pe\b", r"\bthelya\s*var\b"
+            r"\bthele\s*pe\b", r"\bthelya\s*var\b",
+            r"कैंटीन", r"कॅन्टीन", r"कन्टीन", r"टपरी", r"ठेला", r"ठेले", r"ठेलावर",
+            r"होटल", r"हॉटेल", r"ढाबा", r"स्टॉल", r"बाहर", r"बाहेर"
         ],
         "mess": [
             r"\bmess\b", r"\bhostel\b", r"\bhostel\s*mess\b", r"\bdining\s*hall\b",
             r"\bmess\s*mein\b", r"\bmess\s*madhe\b", r"\bmess\s*cha\b", r"\bmess\s*che\b",
-            r"\bhostel\s*chya\b"
+            r"\bhostel\s*chya\b",
+            r"मेस", r"हॉस्टल", r"हॉस्टेल", r"डाइनिंग"
         ],
         "home": [
             r"\bghar\b", r"\bghari\b", r"\bhome\b", r"\bhomemade\b", r"\bghar\s*ka\b",
-            r"\bgharcha\b", r"\bmummy\b", r"\baai\b", r"\baaine\b", r"\bmummy\s*ne\b"
+            r"\bgharcha\b", r"\bmummy\b", r"\baai\b", r"\baaine\b", r"\bmummy\s*ne\b",
+            r"घर", r"घरी", r"घर का", r"घरचे", r"आई", r"आईने", r"मम्मी", r"मम्मीने"
         ]
     }
 
@@ -246,6 +258,9 @@ class NutritionEngine:
         qty = 1.0
         unit = default_unit
 
+        b_start = r'(?<![a-zA-Z0-9\u0900-\u097F])'
+        b_end = r'(?![a-zA-Z0-9\u0900-\u097F])'
+
         # 1. Search for numeric digits (e.g., 2, 2.5, 3)
         num_match = re.search(r"(\d+(?:\.\d+)?)", prefix_text)
         if num_match:
@@ -254,23 +269,47 @@ class NutritionEngine:
             except ValueError:
                 qty = 1.0
         else:
-            # 2. Search for Hindi / Marathi number words
-            for word, val in self.HINDI_MARATHI_NUMBERS.items():
-                pattern = r"\b" + re.escape(word) + r"\b"
-                if re.search(pattern, prefix_text, re.IGNORECASE):
-                    qty = val
-                    break
+            # 2. Check for Devanagari numerals (e.g. १, २, ३)
+            dev_digits = {"०": "0", "१": "1", "२": "2", "३": "3", "४": "4", "५": "5", "६": "6", "७": "7", "८": "8", "९": "9"}
+            dev_match = re.search(r"([०-९]+(?:\.[०-९]+)?)", prefix_text)
+            if dev_match:
+                try:
+                    eng_num = "".join(dev_digits.get(c, c) for c in dev_match.group(1))
+                    qty = float(eng_num)
+                except ValueError:
+                    qty = 1.0
+            else:
+                # 3. Search for Hindi / Marathi / English number words
+                for word, val in self.HINDI_MARATHI_NUMBERS.items():
+                    pattern = b_start + re.escape(word) + b_end
+                    if re.search(pattern, prefix_text, re.IGNORECASE):
+                        qty = val
+                        break
 
-        # 3. Search for recognized units in prefix
+        # 4. Search for recognized units in prefix (English / Romanized)
         sorted_units = sorted(self.units.keys(), key=len, reverse=True)
         found_unit = False
         for u in sorted_units:
             u_clean = u.replace("-", r"[\s\-]?")
-            pattern = r"\b" + u_clean + r"\b"
+            pattern = b_start + u_clean + b_end
             if re.search(pattern, prefix_text, re.IGNORECASE):
                 unit = u
                 found_unit = True
                 break
+
+        # 5. Search for Devanagari unit equivalents
+        if not found_unit:
+            dev_unit_map = {
+                "कटोरी": "katori", "वाटी": "waati", "प्लेट": "plate", "थाली": "plate",
+                "दोना": "dona", "चम्मच": "chammach", "चमचा": "chammach",
+                "कटिंग": "cutting", "ग्लास": "glass", "कप": "cup",
+                "पीस": "piece", "नग": "piece", "रोटी": "piece", "पराठा": "piece"
+            }
+            for dev_u, std_u in dev_unit_map.items():
+                if re.search(b_start + re.escape(dev_u) + b_end, prefix_text):
+                    unit = std_u
+                    found_unit = True
+                    break
 
         if not found_unit:
             unit = default_unit
@@ -300,10 +339,14 @@ class NutritionEngine:
         lower_text = text.lower()
         raw_matches = []
 
-        # Find all candidate alias matches
+        # Boundary-safe lookup for both ASCII words and Devanagari Unicode
+        b_start = r'(?<![a-zA-Z0-9\u0900-\u097F])'
+        b_end = r'(?![a-zA-Z0-9\u0900-\u097F])'
+
+        # Find all candidate alias matches using lookaround boundary
         sorted_aliases = sorted(self.alias_to_item.keys(), key=len, reverse=True)
         for alias in sorted_aliases:
-            pattern = r"\b" + re.escape(alias) + r"\b"
+            pattern = b_start + re.escape(alias) + b_end
             for m in re.finditer(pattern, lower_text):
                 start, end = m.span()
                 raw_matches.append((start, end, alias, self.alias_to_item[alias]))
@@ -327,8 +370,9 @@ class NutritionEngine:
             prefix_segment = lower_text[prev_end:start]
             prev_end = end
 
-            # If there is a conjunction like 'aur', 'ani', 'and', ',', trim to the nearest conjunction
-            conjunction_matches = list(re.finditer(r"\b(aur|ani|and|with|saath|sobat|,)\b", prefix_segment))
+            # Conjunctions in English, Hinglish, Marathi, and Devanagari
+            conj_pattern = r"(?:\b(aur|ani|and|with|saath|sobat|then|end|mein|madhe|,)\b|(?:और|आणि|व|तसेच|देन|एंड|में|मध्ये|खाई|खाया|घेतली|घेतला|पिली|पिया|,|।))"
+            conjunction_matches = list(re.finditer(conj_pattern, prefix_segment, re.IGNORECASE))
             if conjunction_matches:
                 last_conj_end = conjunction_matches[-1].end()
                 prefix_segment = prefix_segment[last_conj_end:]
@@ -530,6 +574,18 @@ class NutritionEngine:
         context: str,
     ) -> str:
         """Generates dynamic Devansh (Youth/Hostel Dost) coach script with inline expressive tags."""
+        if not items or len(items) == 0:
+            return "Dost, koi food item samajh nahi aaya. Kripya thoda clearly batayein jaise '2 samosa aur ek cutting chai'."
+
+        # High-carb low-protein snack special handling (e.g. Chai + Cookies + Chakli)
+        is_snack_profile = all(i.category in ["snack", "sweet", "beverage", "fast_food"] for i in items)
+        if is_snack_profile and total_prot <= 6.0 and total_cal >= 200:
+            return (
+                f"Arre dost! Sham ke naste mein chai, cookies aur chakli se lagbhag {int(total_cal)} calorie load ho gayi. "
+                f"<sigh> Refined maida aur deep-fried trans fat toh aa gaya par protein bilkul zero hai! </sigh> "
+                f"Agli baar chakli ki jagah thoda roasted chana ya sattu drink try kar."
+            )
+
         item_summary = " aur ".join([f"{int(i.quantity)} {i.unit} {i.name_mr or i.name_en}" for i in items[:3]])
 
         if reality.glycemic_spike_risk == "Severe":
@@ -538,7 +594,7 @@ class NutritionEngine:
                 f"<laugh> Taste toh kadak tha, </laugh> lekin metabolic reality check sun: "
                 f"Canteen mein lagbhag {int(total_cal)} calorie aur {int(total_carb)} gram carbs load ho gaye, "
                 f"aur protein mila sirf {int(total_prot)} gram! "
-                f"Carb to protein ratio {reality.carb_to_protein_ratio} chal raha hai bhai. "
+                f"Carb to protein ratio {reality.carb_to_protein_ratio} chal रहा है भाई। "
                 f"Agli baar 10 rupaye ka bhuna chana ya sattu drink add kar, glucose crash nahi hoga!"
             )
         else:
@@ -559,7 +615,18 @@ class NutritionEngine:
         context: str,
     ) -> str:
         """Generates dynamic Shivani (Family/Elder Care) coach script with warm, respectful pacing."""
+        if not items or len(items) == 0:
+            return "Kshama karein, mujhe bhojan ka vivaran samajh nahi aaya. Kripya thoda spashth roop se kahein, jaise 'do roti aur dal'."
+
         item_summary = " aur ".join([f"{int(i.quantity)} {i.unit} {i.name_hi}" for i in items[:3]])
+
+        is_snack_profile = all(i.category in ["snack", "sweet", "beverage", "fast_food"] for i in items)
+        if is_snack_profile and total_prot <= 6.0 and total_cal >= 200:
+            return (
+                f"Namaste. Sham ke naste mein aahar se lagbhag {int(total_cal)} calories aur tel ki matra badh gayi hai, "
+                f"parantu protein ki kami hai. Pachan aur rakt sharkara ko santulit rakhne ke liye, "
+                f"tali hui cheezon ke sthan par thoda bhuna chana ya taak lena adhik hitkari hoga."
+            )
 
         if reality.hidden_sugar_flags or reality.glycemic_spike_risk in ["Severe", "Moderate"]:
             script = (

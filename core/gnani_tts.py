@@ -108,8 +108,13 @@ class GnaniTTSClient:
         Returns:
             AudioResultPath (str subclass) with .audio_bytes and dict-like .get() compatibility.
         """
-        if not text:
-            text = "Namaste. Aahar-Vaani mein aapka swagat hai."
+        # Guardrail: Never congratulate 0 calories or empty food input
+        clean_text_check = text.lower().strip() if text else ""
+        if not clean_text_check or "0 calorie" in clean_text_check or "0 calories" in clean_text_check or "0 gram protein" in clean_text_check:
+            if str(persona).lower() == "shivani":
+                text = "Kshama karein, mujhe bhojan ka vivaran samajh nahi aaya. Kripya thoda spashth roop se kahein, jaise 'do roti aur dal'."
+            else:
+                text = "Dost, koi food item samajh nahi aaya. Kripya thoda clearly batayein jaise '2 samosa aur ek cutting chai'."
 
         # Handle keyword arguments from earlier callers
         if "voice_gender" in kwargs:
