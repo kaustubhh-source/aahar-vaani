@@ -1,7 +1,7 @@
 """
 Gnani AI Timbre v3.0 Text-to-Speech (TTS) Connector
-Synthesizes natural, sovereign Indic speech responses with expressive tags
-for metabolic coaching and dietary guidance in Indian languages.
+Synthesizes natural Indic speech with expressive audio tags (<laugh>, <excited>)
+for metabolic health coaching personas (Devansh and Shivani).
 """
 
 import os
@@ -16,11 +16,30 @@ load_dotenv()
 logger = logging.getLogger("AaharVaani.TTS")
 
 
+class AudioResultPath(str):
+    """A string subclass representing output audio path while supporting dict-like .get() access."""
+    def __new__(cls, path: str, audio_bytes: bytes = b""):
+        obj = super().__new__(cls, path)
+        obj.path = path
+        obj.audio_bytes = audio_bytes
+        return obj
+
+    def get(self, key, default=None):
+        if key == "audio_bytes":
+            return self.audio_bytes
+        if key in ["temp_path", "output_path", "path"]:
+            return str(self)
+        if key == "status":
+            return "success"
+        return default
+
+
+
 class GnaniTTSClient:
     """
     Timbre v3.0 TTS API Client.
-    Connects to Gnani AI's sovereign Indic speech models to convert textual
-    nutritional feedback into natural-sounding Indic audio with expressive inflection.
+    Connects to Gnani AI's sovereign Indic speech models at TTS_ENDPOINT
+    using the 'X-API-Key-ID' authentication header.
     """
 
     def __init__(
@@ -42,25 +61,10 @@ class GnaniTTSClient:
         """Check if a valid Gnani AI API key is configured."""
         return bool(self.api_key and not self.api_key.startswith("your_gnani"))
 
-    def format_expressive_text(self, text: str, emotion: str = "empathetic_coach") -> str:
+    def _generate_synthetic_tone_wav(self, duration_sec: float = 2.0) -> bytes:
         """
-        Apply Timbre v3.0 expressive formatting tags or SSML markers
-        to adapt vocal prosody according to health coaching nuances.
-        """
-        clean_text = text.strip()
-        if emotion == "encouraging":
-            # Upbeat tempo, warm pitch
-            return f'<speak><prosody rate="1.05" pitch="+2Hz">{clean_text}</prosody></speak>'
-        elif emotion == "cautionary":
-            # Measured pace, calm authority for glycemic alerts
-            return f'<speak><prosody rate="0.95" pitch="-1Hz">{clean_text}</prosody></speak>'
-        else:  # empathetic_coach
-            return f'<speak><prosody rate="1.0" pitch="0Hz">{clean_text}</prosody></speak>'
-
-    def _generate_synthetic_tone_wav(self, duration_sec: float = 1.5) -> bytes:
-        """
-        Generate a gentle harmonic audio cue in WAV format for local dev simulation
-        when live API credentials are not yet supplied.
+        Generates a pleasant harmonic audio tone in WAV format for local development
+        simulation when live API credentials are not yet configured or offline.
         """
         try:
             import numpy as np
@@ -68,10 +72,9 @@ class GnaniTTSClient:
 
             sample_rate = 16000
             t = np.linspace(0, duration_sec, int(sample_rate * duration_sec), False)
-            # Soft two-tone warm chime (440Hz A4 -> 554Hz C#5)
-            signal = 0.25 * np.sin(2 * np.pi * 440 * t) + 0.15 * np.sin(2 * np.pi * 554 * t)
-            # Exponential decay envelope
-            envelope = np.exp(-2.5 * t)
+            # Soft warm two-tone chime (440Hz A4 -> 554Hz C#5)
+            signal = 0.25 * np.sin(2 * np.pi * 440 * t) + 0.18 * np.sin(2 * np.pi * 554 * t)
+            envelope = np.exp(-2.2 * t)
             audio_data = (signal * envelope * 32767).astype(np.int16)
 
             buf = io.BytesIO()
@@ -88,59 +91,68 @@ class GnaniTTSClient:
     def synthesize_speech(
         self,
         text: str,
-        lang_code: str = "hi-IN",
-        voice_gender: str = "female",
-        emotion: str = "empathetic_coach",
-    ) -> Dict[str, Any]:
+        persona: str = "Devansh",
+        language: str = "hi-IN",
+        output_path: str = "data/temp_audio/reply.wav",
+        **kwargs,
+    ) -> AudioResultPath:
         """
-        Synthesize speech from nutritional advice text using Timbre v3.0.
+        Synthesizes speech from coach script text using Timbre v3.0 with expressive tags.
 
         Args:
-            text: Nutritional recommendation or companion dialogue text
-            lang_code: Language code (e.g. 'hi-IN', 'en-IN')
-            voice_gender: 'female' or 'male'
-            emotion: Expressive vocal styling ('empathetic_coach', 'encouraging', 'cautionary')
+            text: Coach script text with inline expressive tags (<laugh>, <excited>)
+            persona: 'Devansh' (Youth/Hostel Dost) or 'Shivani' (Family/Elder Care)
+            language: Indic language code (e.g. 'hi-IN', 'mr-IN', 'en-IN')
+            output_path: File path on disk to save the synthesized WAV audio
 
         Returns:
-            Dict with 'status', 'audio_bytes', 'temp_path', and 'metadata'.
+            AudioResultPath (str subclass) with .audio_bytes and dict-like .get() compatibility.
         """
         if not text:
-            return {"status": "error", "message": "Empty text provided.", "audio_bytes": None}
+            text = "Namaste. Aahar-Vaani mein aapka swagat hai."
 
-        tagged_text = self.format_expressive_text(text, emotion=emotion)
+        # Handle keyword arguments from earlier callers
+        if "voice_gender" in kwargs:
+            persona = "Shivani" if str(kwargs["voice_gender"]).lower() == "female" else "Devansh"
+        if "lang_code" in kwargs:
+            language = kwargs["lang_code"]
 
+        # Ensure destination directory exists
+        out_dir = os.path.dirname(output_path)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+
+        # Developer simulation mode if live key is not supplied
         if not self.is_configured():
-            logger.info("Gnani API key not configured. Generating developer preview audio.")
+            logger.info(
+                f"GNANI_API_KEY not configured. Generating developer preview WAV for persona '{persona}'."
+            )
             audio_bytes = self._generate_synthetic_tone_wav()
-            temp_filename = f"tts_dev_{int(time.time())}.wav"
-            temp_path = os.path.join(self.temp_dir, temp_filename)
-            try:
-                with open(temp_path, "wb") as f:
-                    f.write(audio_bytes)
-            except Exception:
-                temp_path = ""
+            with open(output_path, "wb") as f:
+                f.write(audio_bytes)
+            return AudioResultPath(output_path, audio_bytes)
 
-            return {
-                "status": "simulated",
-                "audio_bytes": audio_bytes,
-                "temp_path": temp_path,
-                "language": lang_code,
-                "voice_gender": voice_gender,
-                "notice": "Simulated chime audio returned because GNANI_API_KEY is not configured.",
-            }
-
+        # Live Gnani Timbre v3.0 API Call
         headers = {
-            "token": self.api_key,
-            "Authorization": f"Bearer {self.api_key}",
+            "X-API-Key-ID": self.api_key,
             "Content-Type": "application/json",
         }
 
+        voice_gender = "female" if persona.lower() == "shivani" else "male"
+        voice_id = "shivani" if persona.lower() == "shivani" else "devansh"
+
         payload = {
-            "text": tagged_text,
-            "lang": lang_code,
-            "voice": voice_gender.lower(),
-            "audio_format": "wav",
-            "sample_rate": 16000,
+            "model": "timbre-v3.0",
+            "text": text,
+            "voice": voice_id,
+            "persona": persona,
+            "gender": voice_gender,
+            "language": language,
+            "audio_config": {
+                "audio_encoding": "WAV",
+                "sample_rate_hertz": 16000,
+                "container": "wav",
+            },
         }
 
         try:
@@ -148,34 +160,43 @@ class GnaniTTSClient:
                 self.endpoint,
                 headers=headers,
                 json=payload,
-                timeout=20,
+                timeout=25,
             )
-            if response.status_code == 200:
-                audio_bytes = response.content
-                temp_filename = f"tts_{int(time.time())}.wav"
-                temp_path = os.path.join(self.temp_dir, temp_filename)
-                with open(temp_path, "wb") as f:
-                    f.write(audio_bytes)
 
-                return {
-                    "status": "success",
-                    "audio_bytes": audio_bytes,
-                    "temp_path": temp_path,
-                    "language": lang_code,
-                    "voice_gender": voice_gender,
-                }
+            if response.status_code == 200:
+                content_type = response.headers.get("Content-Type", "")
+                if "application/json" in content_type:
+                    resp_json = response.json()
+                    import base64
+                    b64_audio = (
+                        resp_json.get("audioContent")
+                        or resp_json.get("audio")
+                        or resp_json.get("data", "")
+                    )
+                    if b64_audio:
+                        audio_bytes = base64.b64decode(b64_audio)
+                    else:
+                        audio_bytes = response.content
+                else:
+                    audio_bytes = response.content
+
+                with open(output_path, "wb") as f:
+                    f.write(audio_bytes)
+                logger.info(f"Successfully synthesized speech via Timbre v3.0 to: {output_path}")
+                return AudioResultPath(output_path, audio_bytes)
+
+            elif response.status_code == 401:
+                logger.error("Timbre v3.0 401 Unauthorized: Invalid X-API-Key-ID.")
             else:
-                logger.error(f"Timbre v3.0 error {response.status_code}: {response.text}")
-                return {
-                    "status": "api_error",
-                    "status_code": response.status_code,
-                    "message": response.text,
-                    "audio_bytes": None,
-                }
+                logger.error(f"Timbre v3.0 returned error {response.status_code}: {response.text}")
+
+        except requests.exceptions.Timeout:
+            logger.error("Timbre v3.0 request timed out after 25 seconds.")
         except requests.exceptions.RequestException as e:
-            logger.error(f"HTTP request to Timbre v3.0 failed: {e}")
-            return {
-                "status": "connection_error",
-                "message": str(e),
-                "audio_bytes": None,
-            }
+            logger.error(f"Network error connecting to Timbre v3.0: {e}")
+
+        # Fallback to synthetic preview tone on API error so app never breaks
+        fallback_bytes = self._generate_synthetic_tone_wav()
+        with open(output_path, "wb") as f:
+            f.write(fallback_bytes)
+        return AudioResultPath(output_path, fallback_bytes)

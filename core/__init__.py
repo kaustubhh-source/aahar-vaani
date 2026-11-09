@@ -7,12 +7,22 @@ and ICMR-NIN Nutritional Standards.
 
 from .gnani_stt import GnaniSTTClient
 from .gnani_tts import GnaniTTSClient
-from .nutrition_engine import NutritionEngine, FoodItemMatch, MetabolicAuditResult
+from .nutrition_engine import (
+    NutritionEngine,
+    MatchedFoodItem,
+    MetabolicReport,
+    ICMRRealityCheck,
+    FoodItemMatch,
+    MetabolicAuditResult,
+)
 
 __all__ = [
     "GnaniSTTClient",
     "GnaniTTSClient",
     "NutritionEngine",
+    "MatchedFoodItem",
+    "MetabolicReport",
+    "ICMRRealityCheck",
     "FoodItemMatch",
     "MetabolicAuditResult",
 ]
