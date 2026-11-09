@@ -53,7 +53,8 @@ os.makedirs(TEMP_AUDIO_DIR, exist_ok=True)
 
 # --- Pydantic Request Models ---
 class AnalyzeRequest(BaseModel):
-    text: str
+    text: Optional[str] = None
+    meal_text: Optional[str] = None
     persona: Optional[str] = "Devansh"
     language: Optional[str] = "hi-IN"
 
@@ -136,11 +137,12 @@ async def analyze_meal_endpoint(payload: AnalyzeRequest):
     Applies context multipliers (home vs mess vs canteen), computes macros,
     evaluates carb-to-protein ratio and glycemic spike risks, and suggests budget swaps.
     """
-    if not payload.text or not payload.text.strip():
+    input_text = payload.text or payload.meal_text or ""
+    if not input_text.strip():
         raise HTTPException(status_code=400, detail="Meal text cannot be empty.")
 
-    logger.info(f"Analyzing meal: \"{payload.text}\"")
-    report: MetabolicReport = engine.parse_transcript(payload.text)
+    logger.info(f"Analyzing meal: \"{input_text}\"")
+    report: MetabolicReport = engine.parse_transcript(input_text)
 
     # Format Itemized List
     items_data = []
