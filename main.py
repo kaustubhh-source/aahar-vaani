@@ -255,22 +255,11 @@ async def get_audio_file(filename: str):
 
 
 # --- Static Files & Single-Page Dashboard Mount ---
-FRONTEND_DIR = os.path.join(os.path.dirname(__file__), "frontend")
-os.makedirs(FRONTEND_DIR, exist_ok=True)
+STATIC_DIR = os.path.join(os.path.dirname(__file__), "static")
+os.makedirs(STATIC_DIR, exist_ok=True)
 
-# Serve index.html at root
-@app.get("/")
-async def serve_index():
-    index_file = os.path.join(FRONTEND_DIR, "index.html")
-    if os.path.exists(index_file):
-        return FileResponse(index_file)
-    return JSONResponse({
-        "message": "Aahar-Vaani API running. Place index.html in 'frontend/' directory.",
-        "docs": "/docs"
-    })
-
-# Mount remaining static frontend assets if present
-app.mount("/static", StaticFiles(directory=FRONTEND_DIR), name="static")
+# Mount static/ directory directly at root with html=True
+app.mount("/", StaticFiles(directory=STATIC_DIR, html=True), name="static")
 
 
 if __name__ == "__main__":

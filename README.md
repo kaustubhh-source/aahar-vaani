@@ -20,7 +20,7 @@ Aahar-Vaani provides:
 
 ```
 aahar-vaani/
-├── main.py                    # Production FastAPI Application (Serving API + Frontend)
+├── main.py                    # Production FastAPI Application (Serving API + Static SPA)
 ├── test_pipeline.py           # End-to-end backend pipeline smoke test
 ├── .env.example               # Template for Gnani AI API credentials & endpoints
 ├── .gitignore                 # Strict ignores for venv, secrets, cache & audio scratchpad
@@ -28,17 +28,17 @@ aahar-vaani/
 ├── README.md                  # Comprehensive architectural & setup documentation
 ├── core/
 │   ├── __init__.py            # Modular exports
-│   ├── gnani_stt.py           # Prisma v3.0 connector with 450+ culinary keyterms boosting
+│   ├── gnani_stt.py           # Prisma v3.0 connector with 470+ culinary keyterms boosting
 │   ├── gnani_tts.py           # Timbre v3.0 connector with expressive SSML & coach personas
 │   └── nutrition_engine.py    # ICMR-NIN parser, Indian portion units & metabolic audit
 ├── data/
-│   ├── food_lexicon.json      # 59+ validated Indian foods with glycemic index & ICMR codes
+│   ├── food_lexicon.json      # 60 validated Indian foods with glycemic index & ICMR codes
 │   └── temp_audio/            # Scratchpad for audio processing (.gitkeep preserved)
-├── frontend/                  # Production-Grade Glassmorphic SaaS Dashboard
-│   ├── index.html             # Sleek dark-mode interface with SVG rings & custom audio bar
-│   ├── styles.css             # Deep Zinc (#09090b), glassmorphism, glowing neon mic ring
-│   └── app.js                 # 16kHz WAV encoder, 1-tap presets, and dynamic DOM visualizer
-└── app.py                     # Legacy prototype Streamlit dashboard
+├── static/                    # Dedicated Tailwind CSS Single-Page Application (SPA)
+│   ├── index.html             # Deep Obsidian (#08090D), Bento grid, Lucide icons, HTML5 canvas
+│   ├── style.css              # Custom radar waveforms, glassmorphic panels, and expressive tags
+│   └── app.js                 # 16kHz WAV recorder, live canvas visualizer, Timbre v3.0 player
+└── app.py                     # Streamlit console (alternative reference)
 ```
 
 ---
