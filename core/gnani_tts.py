@@ -139,7 +139,7 @@ class GnaniTTSClient:
         }
 
         voice_gender = "female" if persona.lower() == "shivani" else "male"
-        voice_id = "shivani" if persona.lower() == "shivani" else "devansh"
+        voice_id = "Shivani" if persona.lower() == "shivani" else "Devansh"
 
         payload = {
             "model": "timbre-v3.0",
